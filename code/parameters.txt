@@ -1,0 +1,27 @@
+# TRACKER-TST
+
+TRACK_MAX_POINTS	500
+TRACK_MIN_POINTS	300
+FAST_THRESHOLD  6
+
+LEVELS			7
+TRACK_SIZE		11
+
+DESCRIPTOR		BTD
+DICTIONARY		/home/ktsotsos/Dropbox/PhD/Projects/AR.Drone/UCLA_Stacks/TSTrec/src/voctree_btd_up.hkm
+#DICTIONARY		voctree_sift.hkm
+
+# BTD
+BTD_WINSIZE		11
+BTD_MAXFRAME	10
+
+WIDTH	1024
+HEIGHT	768
+
+# RECOGNITION
+LIST_OBJECT		/Users/Jingming/Workspaces/testRecognizer/list_object.txt
+NUM_TRAIN_DATA	20
+NUM_TEST_DATA 1
+
+# (list file name in each object folder)
+LIST_IMAGES		list.txt

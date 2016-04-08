@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "C0DFDE08E2F2CE669FBE55B28214868920611437",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "C0DFDE08E2F2CE669FBE55B28214868920611437" : 0,
+    "044534B02DFBD2E11E4028836E55F71C8D83DFF2" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "9A55D35A-FC20-43EE-94D0-9332F4C25DF3",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "C0DFDE08E2F2CE669FBE55B28214868920611437" : "TSTPF\/",
+    "044534B02DFBD2E11E4028836E55F71C8D83DFF2" : ""
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "TSTPF",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "TSTPF.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/xzbei\/TSTPF.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "044534B02DFBD2E11E4028836E55F71C8D83DFF2"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/xzbei\/TSTPF.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "C0DFDE08E2F2CE669FBE55B28214868920611437"
+    }
+  ]
+}
