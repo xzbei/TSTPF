@@ -14,6 +14,12 @@
 #include "TSTRecognizer.hpp"
 #include "globaldata.hpp"
 
+#include "defs.h"
+#include "particles.h"
+#include "observation.h"
+#include "time.h"
+#include "unistd.h"
+
 using namespace cv;
 using namespace std;
 using namespace GlobalVar;
@@ -198,8 +204,9 @@ void TST_TRAIN(IplImage* pImageFrame, IplImage* pImageGray){
     }
 }
 
-void TST_TEST(IplImage* pImageFrame, IplImage* pImageGray){
+int TST_TEST(IplImage* pImageFrame, IplImage* pImageGray){
     num_feat = 0;
+    int detect_flag = 0;
     for ( int i = nLevels - 1 ; i >= 0 ; i -- )
     {
         if ( num_feat >= max_num_feat ) break;
@@ -212,27 +219,6 @@ void TST_TEST(IplImage* pImageFrame, IplImage* pImageGray){
         if (num_new_corners == 0) continue;
         sort( keypoints.begin(), keypoints.end(), DescendingOrder);
         float dist_threshold = (BTD_NUM_ROWS*BTD_SAMPLE_STEP/3)*(BTD_NUM_ROWS*BTD_SAMPLE_STEP/3);
-        /*
-         for ( int j = 0 ; j < num_new_corners && num_feat < max_num_feat ; j ++ )
-         {
-         // check the distance to other corners
-         bool good_feature = true;
-         for ( int k = 0 ; good_feature && k < num_feat ; k ++ )
-         {
-         float dist = (pFeat[k].x - new_corners[j].x)*(pFeat[k].x - new_corners[j].x)+
-         (pFeat[k].y - new_corners[j].y)*(pFeat[k].y - new_corners[j].y);
-         if ( pFeatScale[k] == i && dist < dist_threshold )
-         {
-         good_feature = false;
-         }
-         }
-         if ( !good_feature ) continue;
-
-         // add features
-         pFeat[num_feat] = new_corners[j];
-         pFeatScale[num_feat] = i;
-         num_feat ++;
-         }*/
         if ( num_new_corners > 0 )
         {
             // from previous region
@@ -293,8 +279,19 @@ void TST_TEST(IplImage* pImageFrame, IplImage* pImageGray){
     // find best match
     if ( num_match > 0 )
     {
+
         int best_match = 0;
         int best_dist = (prev_x-track_x[0])*(prev_x-track_x[0])+(prev_y-track_y[0])*(prev_y-track_y[0]);
+
+        width_half  = trackMTD->get_mtd_width ( track_l[0], track_s[0] ) / 2;
+        height_half = trackMTD->get_mtd_height( track_l[0], track_s[0] ) / 2;
+        cvRectangle(pImageFrame,
+                    cvPoint(track_x[0]-width_half,track_y[0]-height_half),
+                    cvPoint(track_x[0]+width_half,track_y[0]+height_half),
+                    CV_RGB(0,255,0), 1, 1, 0);
+
+        CvRect* r;
+        r = (CvRect * )malloc(num_match * sizeof( CvRect ));
         for ( int i = 0 ; i < num_match ; i ++ )
         {
             width_half = trackMTD->get_mtd_width( track_l[i], track_s[i] ) / 2;
@@ -306,6 +303,8 @@ void TST_TEST(IplImage* pImageFrame, IplImage* pImageGray){
                         cvPoint(track_x[i]+width_half,track_y[i]+height_half),
                         CV_RGB(0,255,255), 1, 1, 0);/**/
 
+            r[i] = CvRect(cvRound(track_x[i] - width_half), cvRound(track_y[i] - height_half), cvRound(width_half * 2 + 1), cvRound(height_half * 2 + 1));
+
             if ( track_score[best_match] > track_score[i] ||
                 ( track_score[best_match] == track_score[i] && prev_x >= 0 &&
                  (prev_x-track_x[i])*(prev_x-track_x[i])+(prev_y-track_y[i])*(prev_y-track_y[i]) < best_dist ) )
@@ -315,29 +314,32 @@ void TST_TEST(IplImage* pImageFrame, IplImage* pImageGray){
                 best_dist = (prev_x-track_x[i])*(prev_x-track_x[i])+(prev_y-track_y[i])*(prev_y-track_y[i]);
                 best_match = i;
             }
-        }
-        track_x[0] = track_x[best_match];
-        track_y[0] = track_y[best_match];
-        track_l[0] = track_l[best_match];
-        track_s[0] = track_s[best_match];
-        track_r[0] = track_r[best_match];
-        track_score[0] = track_score[best_match];
-//        width_half  = trackMTD->get_mtd_width ( track_l[0], track_s[0] ) / 2;
-//        height_half = trackMTD->get_mtd_height( track_l[0], track_s[0] ) / 2;
-//        cvRectangle(pImageFrame,
-//                    cvPoint(track_x[0]-width_half,track_y[0]-height_half),
-//                    cvPoint(track_x[0]+width_half,track_y[0]+height_half),
-//                    CV_RGB(0,255,0), 3, 1, 0);
-        printf("num_match = %d\n", num_match);
-        //trackMTD->Learn(ppPyramid_curr, nLevels, num_btd_test, pFeatTest, pFeatTestScale, track_x[0], track_y[0], track_l[0], track_s[0], track_r[0]);
 
-//        geometry_msgs::Vector3 pt;
-//
-//        pt.x = track_x[0];
-//        pt.y = track_y[0];
-//        pt.z = ((float)(height_half*2*width_half*2))/((float)(pImageGray->height*pImageGray->width));
-//        recFr_pub_.publish(pt);
-        cout<<"Published Detection at "<<track_x[0]<<" "<<track_y[0]<<" "<<((float)(height_half*2*width_half*2))/((float)(pImageGray->height*pImageGray->width))<<endl;
+        }
+
+
+        // exchange best to first
+
+        if (best_match != 0){
+            float temp;
+            CvRect rr;
+            temp = track_x[0];track_x[best_match] = track_x[0]; track_x[0] = temp;
+            temp = track_y[0];track_y[best_match] = track_y[0]; track_y[0] = temp;
+            temp = track_l[0];track_l[best_match] = track_l[0]; track_l[0] = temp;
+            temp = track_s[0];track_s[best_match] = track_s[0]; track_s[0] = temp;
+            temp = track_r[0];track_r[best_match] = track_r[0]; track_r[0] = temp;
+            temp = track_score[0];track_score[best_match] = track_score[0]; track_score[0] = temp;
+            rr = r[0];r[best_match] = r[0]; r[0] = rr;
+        }
+        width_half  = trackMTD->get_mtd_width ( track_l[0], track_s[0] ) / 2;
+        height_half = trackMTD->get_mtd_height( track_l[0], track_s[0] ) / 2;
+        cvRectangle(pImageFrame,
+                    cvPoint(track_x[0]-width_half,track_y[0]-height_half),
+                    cvPoint(track_x[0]+width_half,track_y[0]+height_half),
+                    CV_RGB(255,255,0), 2, 8, 0);
+
+        regions = r;
+        detect_flag = 1;
     }
     else
     {
@@ -347,18 +349,13 @@ void TST_TEST(IplImage* pImageFrame, IplImage* pImageGray){
         width_half = 0;
         height_half = 0;
         track_score[0] = MTD_SCORE_THRESHOLD;
-
-        //No detection publish
-//        geometry_msgs::Vector3 pt;
-//
-//        pt.x = 0;
-//        pt.y = 0;
-//        pt.z = 0;
-//        recFr_pub_.publish(pt);
+        detect_flag = 0;
     }
     region[0] = track_x[0]-width_half;
     region[1] = track_y[0]-height_half;
     region[2] = track_x[0]+width_half;
     region[3] = track_y[0]+height_half;
-    printf("TST_TEST 4\n");
+
+
+    return detect_flag;
 }

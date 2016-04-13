@@ -36,6 +36,6 @@ void TST_prep(IplImage* pImageFrame, IplImage* pImageGray);
 void TST_RESET(IplImage* pImageFrame, IplImage* pImageGray);
 void TST_BEGIN(IplImage* pImageFrame, IplImage* pImageGray);
 void TST_TRAIN(IplImage* pImageFrame, IplImage* pImageGray);
-void TST_TEST(IplImage* pImageFrame, IplImage* pImageGray);
+int TST_TEST(IplImage* pImageFrame, IplImage* pImageGray);
 
 #endif /* TSTRecognizer_hpp */

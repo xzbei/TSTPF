@@ -1,16 +1,14 @@
-/*
-  This file contains general program definitions.
+//
+//  def.h
+//  TSTPF
+//
+//  Created by BeiXinzhu on 4/7/16.
+//  Copyright © 2016 BeiXinzhu. All rights reserved.
+//
 
-  @author Rob Hess
-  @version 1.0.0-20060306
-*/
+#ifndef def_h
+#define def_h
 
-#ifndef DEFS_H
-#define DEFS_H
-
-/********************************* Includes **********************************/
-
-/* From standard C library */
 #include <math.h>
 #include <stdio.h>
 #include <errno.h>
@@ -22,11 +20,6 @@
 #include "opencv/cv.h"
 #include "opencv/cxcore.h"
 #include "opencv/highgui.h"
-
-/* From GSL */
-//#include <gsl/gsl_rng.h>
-//#include <gsl/gsl_randist.h>
-
 
 /******************************* Defs and macros *****************************/
 
@@ -48,4 +41,6 @@
 
 /********************************** Structures *******************************/
 
-#endif
+
+#endif /* def_h */
+

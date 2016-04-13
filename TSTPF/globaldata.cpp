@@ -11,16 +11,18 @@
 #include "TST.hpp"
 #include "TrackMTD.hpp"
 #include "globaldata.hpp"
+#include "observation.h"
+#include "particles.h"
 
 using namespace GlobalConst;
 
 namespace GlobalConst
 {
-    const int PARTICLES = 500;
+    const int PARTICLES = 1000;
     const int MAX_OBJECTS = 1;
-    const float U0 = 0.5;
-    const float U1 = 0.5;
-    
+    const float U0 = 0.25;
+    const float U1 = 0.25;
+
     const int MODE_RESET = -1;
     const int MODE_BEGIN = 0;
     const int MODE_TRAIN = 1;
@@ -36,12 +38,12 @@ namespace GlobalConst
     const int BTD_NUM_BINS    = 8;
     const int BTD_SAMPLE_STEP   = 2;
 //    const int BTD_SAMPLE_STEP   = 3;
-    
+
     const int MTD_TRAIN_SCALES  = 3;
     const int MTD_NUM_SCALE   = 3;
     const int MTD_NUM_ANCHORS   = 3;
 //    const float MTD_SCORE_THRESHOLD = 0.2;
-    const float MTD_SCORE_THRESHOLD = 0.6;
+    const float MTD_SCORE_THRESHOLD = 1;
     const bool MTD_PRUNE_TRACKING = true;
 }
 
@@ -52,9 +54,9 @@ namespace GlobalVar
     int num_particles = PARTICLES;
     int show_all = 1;
     IplImage* frame;
-    IplImage* framegrey;
-//    histogram** ref_histos;
-//    particle* particles;
+    // IplImage* framegrey;
+    histogram** ref_histos;
+    particle* particles;
     CvRect* regions;
     int numframes = -1;
     int num_objects = 1;
@@ -64,7 +66,7 @@ namespace GlobalVar
     int mode;
     int width; //frame width
     int height; //frame height
-    
+
     IplImage ** ppPyramid_curr;
     IplImage ** ppPyramid_prev;
     CvPoint2D32f * pFeat_curr;
@@ -87,4 +89,5 @@ namespace GlobalVar
     int y1;
     float width_half;
     float height_half;
+    bool TSTfirst_test = true;
 }

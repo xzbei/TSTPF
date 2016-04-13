@@ -29,6 +29,9 @@
 		DAAEF3F11CB4AE860086DCEC /* TrackMTD.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DAAEF3EF1CB4AE860086DCEC /* TrackMTD.cpp */; };
 		DAAEF3F41CB4AE9F0086DCEC /* TST.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DAAEF3F21CB4AE9F0086DCEC /* TST.cpp */; };
 		DAAEF3F71CB4AEF30086DCEC /* TSTRecognizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DAAEF3F51CB4AEF30086DCEC /* TSTRecognizer.cpp */; };
+		DAD27A021CB746E800F91AF6 /* observation.c in Sources */ = {isa = PBXBuildFile; fileRef = DAD27A001CB746E800F91AF6 /* observation.c */; };
+		DAD27A051CB7474000F91AF6 /* particles.c in Sources */ = {isa = PBXBuildFile; fileRef = DAD27A031CB7474000F91AF6 /* particles.c */; };
+		DAD27A0B1CB74CF100F91AF6 /* PFTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DAD27A091CB74CF100F91AF6 /* PFTrack.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -72,6 +75,13 @@
 		DAAEF3F31CB4AE9F0086DCEC /* TST.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TST.hpp; sourceTree = "<group>"; };
 		DAAEF3F51CB4AEF30086DCEC /* TSTRecognizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TSTRecognizer.cpp; sourceTree = "<group>"; };
 		DAAEF3F61CB4AEF30086DCEC /* TSTRecognizer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TSTRecognizer.hpp; sourceTree = "<group>"; };
+		DAD279FF1CB746A500F91AF6 /* defs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = defs.h; sourceTree = "<group>"; };
+		DAD27A001CB746E800F91AF6 /* observation.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = observation.c; sourceTree = "<group>"; };
+		DAD27A011CB746E800F91AF6 /* observation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = observation.h; sourceTree = "<group>"; };
+		DAD27A031CB7474000F91AF6 /* particles.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = particles.c; sourceTree = "<group>"; };
+		DAD27A041CB7474000F91AF6 /* particles.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = particles.h; sourceTree = "<group>"; };
+		DAD27A091CB74CF100F91AF6 /* PFTrack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PFTrack.cpp; sourceTree = "<group>"; };
+		DAD27A0A1CB74CF100F91AF6 /* PFTrack.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PFTrack.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -136,6 +146,8 @@
 		DA1BB57A1CB1CC81005E7764 /* TSTPF */ = {
 			isa = PBXGroup;
 			children = (
+				DAD27A091CB74CF100F91AF6 /* PFTrack.cpp */,
+				DAD27A0A1CB74CF100F91AF6 /* PFTrack.hpp */,
 				DA1BB57B1CB1CC81005E7764 /* main.cpp */,
 				DAAEF3E91CB4ADE40086DCEC /* BTD.cpp */,
 				DAAEF3EA1CB4ADE40086DCEC /* BTD.hpp */,
@@ -147,6 +159,11 @@
 				DAAEF3F31CB4AE9F0086DCEC /* TST.hpp */,
 				DAAEF3F51CB4AEF30086DCEC /* TSTRecognizer.cpp */,
 				DAAEF3F61CB4AEF30086DCEC /* TSTRecognizer.hpp */,
+				DAD279FF1CB746A500F91AF6 /* defs.h */,
+				DAD27A001CB746E800F91AF6 /* observation.c */,
+				DAD27A011CB746E800F91AF6 /* observation.h */,
+				DAD27A031CB7474000F91AF6 /* particles.c */,
+				DAD27A041CB7474000F91AF6 /* particles.h */,
 			);
 			path = TSTPF;
 			sourceTree = "<group>";
@@ -208,11 +225,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				DAAEF3EB1CB4ADE40086DCEC /* BTD.cpp in Sources */,
+				DAD27A021CB746E800F91AF6 /* observation.c in Sources */,
 				DAAEF3EE1CB4AE310086DCEC /* globaldata.cpp in Sources */,
+				DAD27A051CB7474000F91AF6 /* particles.c in Sources */,
 				DA1BB57C1CB1CC81005E7764 /* main.cpp in Sources */,
 				DAAEF3F11CB4AE860086DCEC /* TrackMTD.cpp in Sources */,
 				DAAEF3F41CB4AE9F0086DCEC /* TST.cpp in Sources */,
 				DAAEF3F71CB4AEF30086DCEC /* TSTRecognizer.cpp in Sources */,
+				DAD27A0B1CB74CF100F91AF6 /* PFTrack.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

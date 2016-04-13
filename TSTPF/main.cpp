@@ -5,9 +5,9 @@
 #include <opencv/highgui.h>
 #include <opencv2/opencv.hpp>
 #include <vector>
-//#include "defs.h"
-//#include "particles.h"
-//#include "observation.h"
+#include "defs.h"
+#include "particles.h"
+#include "observation.h"
 #include "time.h"
 #include "unistd.h"
 #include "opencv/cv.h"
@@ -16,6 +16,7 @@
 #include "BTD.hpp"
 #include "globaldata.hpp"
 #include "TSTRecognizer.hpp"
+#include "PFTrack.hpp"
 
 using namespace std;
 using namespace cv;
@@ -30,6 +31,7 @@ using namespace GlobalVar;
 CvScalar color;
 char* vid_file = "/Users/beixinzhu/Documents/UCLA/visionlab/testmovie/bag.mp4";
 void on_mouse(int event, int x, int y, int flags, void* param );
+int is_detect = 0;
 
 int main( int argc, char** argv )
 {
@@ -48,13 +50,14 @@ int main( int argc, char** argv )
     cvCvtColor(frame, framegrey, CV_BGR2GRAY);
     width = frame->width;
     height = frame->height;
+    IplImage* hsv_frame;
+    hsv_frame = bgr2hsv(frame);
 
     switch (mode){
         case MODE_BEGIN:
             printf("MODE_BEGIN, numframes = %d\n",numframes);
             if (numframes == -1){
                 initializeTracker(frame,framegrey);
-                printf("Initialized Tracker...");
                 mode =  MODE_RESET;
                 break;
             }
@@ -66,6 +69,7 @@ int main( int argc, char** argv )
         case MODE_RESET:
             printf("MODE_RESET, numframes = %d\n",numframes);
             numframes = 0;
+            TSTfirst_test = true;
             TST_prep(frame,framegrey);
             TST_RESET(frame,framegrey);
             // PF_RESET();
@@ -76,7 +80,7 @@ int main( int argc, char** argv )
             numframes ++;
             TST_prep(frame, framegrey);
             TST_TRAIN(frame, framegrey);
-            // particles = PF_train(frame, mGr);
+            PF_train(frame,hsv_frame);
             mode =  MODE_TEST;
             break;
         case MODE_TEST:
@@ -84,8 +88,17 @@ int main( int argc, char** argv )
             cvWaitKey(0);
             numframes ++;
             TST_prep(frame, framegrey);
-            TST_TEST(frame, framegrey);
-            // PF_test(frame, mGr, num_objects);
+            is_detect = TST_TEST(frame, framegrey);
+//            num_match = 1;
+
+            if (TSTfirst_test && is_detect){
+              PF_init(frame,hsv_frame);
+              PF_test(frame, hsv_frame , TSTfirst_test);
+              TSTfirst_test = false;
+            }else{
+              PF_test(frame, hsv_frame , TSTfirst_test);
+            }
+            
             mode =  MODE_TEST;
             break;
     }

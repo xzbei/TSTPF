@@ -14,6 +14,8 @@
 #include "opencv/cv.h"
 #include "TST.hpp"
 #include "TrackMTD.hpp"
+#include "observation.h"
+#include "particles.h"
 
 //using namespace GlobalConst;
 
@@ -23,7 +25,7 @@ namespace GlobalConst
     extern const int MAX_OBJECTS;
     extern const float U0;
     extern const float U1;
-    
+
     extern const int MODE_RESET;
     extern const int MODE_BEGIN;
     extern const int MODE_TRAIN;
@@ -36,7 +38,7 @@ namespace GlobalConst
     extern const int BTD_NUM_HISTOGRAMS ;
     extern const int BTD_NUM_BINS;
     extern const int BTD_SAMPLE_STEP;
-    
+
     extern const int MTD_TRAIN_SCALES;
     extern const int MTD_NUM_SCALE;
     extern const int MTD_NUM_ANCHORS;
@@ -51,10 +53,11 @@ namespace GlobalVar
     extern int num_particles;
     extern int show_all;
     extern IplImage* frame;
-    extern IplImage* framegrey;
-//    extern histogram** ref_histos;
-//    extern particle* particles;
+    // extern IplImage* framegrey;
+    extern histogram** ref_histos;
+    extern particle* particles;
     extern CvRect* regions;
+//    CvRect* regions;
     extern int numframes;
     extern int num_objects;
     extern int nLevels;
@@ -63,7 +66,7 @@ namespace GlobalVar
     extern int mode;
     extern int width; //frame width
     extern int height; //frame height
-    
+
     extern IplImage ** ppPyramid_curr;
     extern IplImage ** ppPyramid_prev;
     extern CvPoint2D32f * pFeat_curr;
@@ -86,6 +89,7 @@ namespace GlobalVar
     extern int y1;
     extern float width_half;
     extern float height_half;
+    extern bool TSTfirst_test;
 }
 
 #endif /*globaldata_hpp*/
