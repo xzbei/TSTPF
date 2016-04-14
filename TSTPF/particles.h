@@ -12,6 +12,7 @@
 #include <stdio.h>
 
 #include "observation.h"
+//#include <opencv/highgui.h>
 //#include <gsl/gsl_rng.h>
 
 #ifdef __cplusplus
@@ -70,6 +71,11 @@ extern "C" {
     float euclidean_distance(particle p1, particle p2);
     float gaussian_kernel(float distance, float kernel_bandwidth);
     particle Meanshift_cluster( particle* particles, int n, float kernel_bandwidth,int framewidth, int frameheight);
+    
+//    void DrawTransRec(IplImage* img, float ** heatmap_hist, int num_x, int num_y, int w_interval, int h_interval, float alpha);
+    void getHeatMapColor(float value, float *red, float *green, float *blue);
+    void visualize_particle_heatmap(IplImage* frame, particle* particles, int num_particles, int visualize_num_intervals, int num_alives);
+    void visualize_particle_heatmap2(IplImage* frame, particle* particles, int num_particles, int visualize_intervals2, int num_alives);
 
 
 #ifdef __cplusplus

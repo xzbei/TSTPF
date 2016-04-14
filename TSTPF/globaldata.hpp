@@ -90,6 +90,8 @@ namespace GlobalVar
     extern float width_half;
     extern float height_half;
     extern bool TSTfirst_test;
+    extern int visualize_num_intervals;
+    extern int visualize_intervals2;
 }
 
 #endif /*globaldata_hpp*/

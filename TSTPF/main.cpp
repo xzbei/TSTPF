@@ -85,7 +85,7 @@ int main( int argc, char** argv )
             break;
         case MODE_TEST:
             printf("MODE_TEST, numframes = %d\n",numframes);
-            cvWaitKey(0);
+//            cvWaitKey(0);
             numframes ++;
             TST_prep(frame, framegrey);
             is_detect = TST_TEST(frame, framegrey);

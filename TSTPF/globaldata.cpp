@@ -18,7 +18,7 @@ using namespace GlobalConst;
 
 namespace GlobalConst
 {
-    const int PARTICLES = 1000;
+    const int PARTICLES = 2000;
     const int MAX_OBJECTS = 1;
     const float U0 = 0.25;
     const float U1 = 0.25;
@@ -90,4 +90,6 @@ namespace GlobalVar
     float width_half;
     float height_half;
     bool TSTfirst_test = true;
+    int visualize_num_intervals = 20;
+    int visualize_intervals2 = 20;
 }

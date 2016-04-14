@@ -12,19 +12,8 @@
 #include "time.h"
 #include <stdio.h>
 #include <math.h>
-//
-//#define TRANS_XX_STD 10
-//#define TRANS_YY_STD 5
-//#include <cstdlib>
-//#define TRANS_S_STD 0.001
-
-/* autoregressive dynamics parameters for transition model */
-//#define A1  2.0
-//#define A2 -1.0
+#include <opencv/highgui.h>
 #define BB0  1
-//#define TRANS_X_STD 1.0
-//#define TRANS_Y_STD 0.5
-//#define TRANS_S_STD 0.001
 
 #define TRANS_X_STD /*5.0*/ 30
 #define TRANS_Y_STD /*2.5*/ 30
@@ -449,6 +438,7 @@ int particle_cmp2( const void* p1, const void* p2 )
 
 
 
+//display_particle
 
 /*
  Displays a particle on an image as a rectangle around the region specified
@@ -522,17 +512,17 @@ particle Meanshift_cluster( particle* particles, int n, float kernel_bandwidth,i
     s /= (float)nums;
     center_particle.s = s;
 //    center_particle.s = 1;
-    
+
     for (i=0;i<nums;i++){
         ww+= (float)particles[i].width;
     }
     ww /= (float)nums;
-    
+
     for (i=0;i<nums;i++){
         hh+= (float)particles[i].height;
     }
     hh /= (float)nums;
-    
+
     center_particle.width = ww;
     center_particle.height = hh;
 
@@ -560,4 +550,136 @@ particle Meanshift_cluster( particle* particles, int n, float kernel_bandwidth,i
 
     }while (iter<500 && meanshift_distance > EPSILON);
     return center_particle;
+}
+
+void getHeatMapColor(float value, float *red, float *green, float *blue)
+{
+    const int NUM_COLORS = 4;
+    static float color[NUM_COLORS][3] = { {0,0,1}, {0,1,0}, {1,1,0}, {1,0,0} };
+    // A static array of 4 colors:  (blue,   green,  yellow,  red) using {r,g,b} for each.
+
+    int idx1;        // |-- Our desired color will be between these two indexes in "color".
+    int idx2;        // |
+    float fractBetween = 0;  // Fraction between "idx1" and "idx2" where our value is.
+
+    if(value <= 0)      {  idx1 = idx2 = 0;            }    // accounts for an input <=0
+    else if(value >= 1)  {  idx1 = idx2 = NUM_COLORS-1; }    // accounts for an input >=0
+    else
+    {
+        value = value * (NUM_COLORS-1);        // Will multiply value by 3.
+        idx1  = floor(value);                  // Our desired color will be after this index.
+        idx2  = idx1+1;                        // ... and before this index (inclusive).
+        fractBetween = value - (float)(idx1);    // Distance between the two indexes (0-1).
+    }
+
+    *red   = (color[idx2][0] - color[idx1][0])*fractBetween + color[idx1][0];
+    *green = (color[idx2][1] - color[idx1][1])*fractBetween + color[idx1][1];
+    *blue  = (color[idx2][2] - color[idx1][2])*fractBetween + color[idx1][2];
+}
+
+void visualize_particle_heatmap(IplImage* frame, particle* particles, int num_particles, int visualize_num_intervals, int num_alives)
+{
+    int frame_width = frame->width;
+    int frame_height = frame->height;
+    int x_index,y_index,num_x,num_y;
+    int w_interval,h_interval;
+    float max_hist = 0;
+    float r,g,b;
+
+    w_interval = frame_width / visualize_num_intervals;
+    h_interval = frame_height / visualize_num_intervals;
+    num_x = ((float)frame_width / w_interval - (int) frame_width / w_interval > 0)? ((int) frame_width / w_interval +1) :((int) frame_width / w_interval);
+    num_y = ((float)frame_height / h_interval - (int) frame_height / h_interval > 0)? ((int) frame_height / h_interval +1) :((int) frame_height / h_interval);
+    float heatmap_hist[num_x][num_y];
+//    memset(heatmap_hist, 0, num_x * num_y);
+
+    for (int i=0; i < num_x ; i++){
+        for (int j=0; j < num_y; j++){
+            heatmap_hist[i][j] = 0;
+        }
+    }
+    for (int i = 0; i < num_particles; i++){
+        if (particles[i].alive){
+            x_index = (int) particles[i].x / w_interval;
+            y_index = (int) particles[i].y / h_interval;
+            if (x_index > num_x || y_index > num_y || x_index < 0 || y_index < 0)
+                continue;
+            heatmap_hist[x_index][y_index] = (float) heatmap_hist[x_index][y_index] + 1.0;
+            if (heatmap_hist[x_index][y_index] > max_hist){
+                max_hist = heatmap_hist[x_index][y_index];
+            }
+        }
+    }
+
+    for (int i = 0; i < num_x; i++){
+      for (int j = 0; j < num_y; j++){
+          heatmap_hist[i][j] = (float)heatmap_hist[i][j] / max_hist;
+      }
+    }
+
+    for (int i = 0; i < num_x - 1; i++){
+        for (int j = 0; j < num_y - 1; j++){
+            getHeatMapColor(heatmap_hist[i][j], &r, &g, &b);
+            IplImage * rec=cvCreateImage(cvSize(w_interval,h_interval),frame->depth,frame->nChannels);
+            cvRectangle(rec,cvPoint(0,0),cvPoint(w_interval,h_interval),CV_RGB(r*255,g*255,b*255),-1,1,0);
+            cvSetImageROI(frame,cvRect(i*w_interval,j*h_interval,w_interval,h_interval));
+            cvAddWeighted(frame,0.5,rec,1-0.5,0.0,frame);
+        }
+    }
+    cvResetImageROI(frame);
+
+}
+
+
+void visualize_particle_heatmap2(IplImage* frame, particle* particles, int num_particles, int visualize_intervals2, int num_alives)
+{
+    int frame_width = frame->width;
+    int frame_height = frame->height;
+    float max_hist = 0;
+    float r,g,b;
+    float heatmap_hist[frame_width][frame_width];
+    memset(heatmap_hist, 0, frame_width * frame_width);
+
+    for (int i=0; i < frame_width ; i++){
+        for (int j=0; j < frame_height; j++){
+            heatmap_hist[i][j] = 0;
+        }
+    }
+
+    for (int i = 0; i < num_particles; i++){
+        if (particles[i].alive){
+            int tempx = particles[i].x;
+            int tempy = particles[i].y;
+            for (int j = -visualize_intervals2; j<=visualize_intervals2 ;j++){
+                for (int k = -visualize_intervals2; k<=visualize_intervals2 ;k++){
+                    heatmap_hist[tempx + j][tempy + k] ++;
+                    if (heatmap_hist[tempx + j][tempy + k] > max_hist){
+                        max_hist = heatmap_hist[tempx + j][tempy + k];
+                    }
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < frame_width; i++){
+      for (int j = 0; j < frame_height; j++){
+          heatmap_hist[i][j] = (float)heatmap_hist[i][j] / max_hist;
+      }
+    }
+
+    IplImage * rec=cvCreateImage(cvSize(frame_width,frame_height),frame->depth,frame->nChannels);
+
+    for (int i = 0; i < frame_width - 1; i++){
+        for (int j = 0; j < frame_height - 1; j++){
+            getHeatMapColor(heatmap_hist[i][j], &r, &g, &b);
+            ((uchar *)(rec->imageData + j*rec->widthStep))[i*rec->nChannels + 0]=b*255; // B
+            ((uchar *)(rec->imageData + j*rec->widthStep))[i*rec->nChannels + 1]=g*255; // G
+            ((uchar *)(rec->imageData + j*rec->widthStep))[i*rec->nChannels + 2]=r*255; // R
+        }
+    }
+
+    // cvSetImageROI(frame,cvRect(i*w_interval,j*h_interval,w_interval,h_interval));
+    cvAddWeighted(frame,0.7,rec,1-0.7,0.0,frame);
+    cvResetImageROI(frame);
+
 }

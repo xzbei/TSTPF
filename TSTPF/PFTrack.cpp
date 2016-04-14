@@ -155,4 +155,8 @@ void PF_test(IplImage* frame, IplImage* hsv_frame, bool & TSTfirst_test){
             cvRectangle(frame, Point(x3 * SCALE, y3 * SCALE), Point(x2 * SCALE, y2 * SCALE),
                       CV_RGB(0, 255, 0), 3, 8, 0);
     }
+    
+//    visualize_particle_heatmap(frame, particles, num_particles, visualize_num_intervals, num);
+    visualize_particle_heatmap2(frame
+                                , particles, num_particles, visualize_intervals2, num);
 }

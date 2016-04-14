@@ -192,7 +192,7 @@ float likelihood( IplImage* img, int r, int c,
     float d_sq;
 
     /* extract region around (r,c) and compute and normalize its histogram */
-    
+
     CvRect rect = cvRect( c - w / 2, r - h / 2, w, h );
     if (rect.width >= 0 && rect.height >= 0 && rect.x < img->width && rect.y < img->height && rect.x + rect.width >= (int)(rect.width > 0) && rect.y + rect.height >= (int)(rect.height > 0)){
         cvSetImageROI( img, cvRect( c - w / 2, r - h / 2, w, h ) );
@@ -284,31 +284,6 @@ int export_histogram( histogram* histo, char* filename )
     return 1;
 }
 
-// int getregions(IplImage* frame, CvRect** regions){
-//     CvRect* r;
-//     int x1, y1, w, h;
-//
-//     r = malloc( 1 * sizeof( CvRect ) );
-//
-//     int width = frame->width;
-//     int height = frame->height;
-//     int xcenter = width/2;
-//     int ycenter = height/2;
-//
-//     x1 = round(xcenter - xcenter/2);
-//     y1 = round(ycenter - ycenter/2);
-//
-//     w = xcenter /2;
-//     h = ycenter / 2;
-//
-//     w = ( w % 2 )? w : w+1;
-//     h = ( h % 2 )? h : h+1;
-//     r[0] = cvRect( x1, y1, w, h );
-//
-//     *regions = r;
-//     return 1;
-// }
-
 histogram** compute_ref_histos( IplImage* frame, CvRect* regions, int n )
 {
     histogram** histos = malloc( n * sizeof( histogram* ) );
@@ -328,22 +303,4 @@ histogram** compute_ref_histos( IplImage* frame, CvRect* regions, int n )
     }
 
     return histos;
-}
-
-IplImage * change4channelTo3InIplImage(IplImage * src) {
-    if (src->nChannels != 4) {
-        return NULL;
-    }
-    int row;
-    int col;
-
-    IplImage * destImg = cvCreateImage(cvGetSize(src), IPL_DEPTH_8U, 3);
-    for (row = 0; row < src->height; row++) {
-        for (col = 0; col < src->width; col++) {
-            CvScalar s = cvGet2D(src, row, col);
-            cvSet2D(destImg, row, col, s);
-        }
-    }
-
-    return destImg;
 }

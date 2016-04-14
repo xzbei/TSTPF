@@ -50,11 +50,9 @@ extern "C" {
     int export_histogram( histogram* histo, char* filename );
     // int getregions(IplImage* frame, CvRect** regions);
     histogram** compute_ref_histos( IplImage* frame, CvRect* regions, int n );
-    IplImage * change4channelTo3InIplImage(IplImage * src);
-
+    
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* observation_h */
