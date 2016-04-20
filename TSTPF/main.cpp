@@ -1,3 +1,4 @@
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc_c.h>
 #include <opencv2/imgproc.hpp>
@@ -31,7 +32,6 @@ using namespace GlobalVar;
 CvScalar color;
 char* vid_file = "/Users/beixinzhu/Documents/UCLA/visionlab/testmovie/bag.mp4";
 void on_mouse(int event, int x, int y, int flags, void* param );
-int is_detect = 0;
 
 int main( int argc, char** argv )
 {
@@ -63,47 +63,69 @@ int main( int argc, char** argv )
             }
             TST_prep(frame,framegrey);
             TST_BEGIN(frame,framegrey);
+            generating_proposal = false;
             // rectangle(mGr,Point((ycenter-ycenter/2)*SCALE,(xcenter - xcenter/2)*SCALE), Point((ycenter+ycenter/2)*SCALE,(xcenter+xcenter/2)*SCALE),Scalar(255,0,0,255),8);
             mode =  MODE_BEGIN;
             break;
         case MODE_RESET:
             printf("MODE_RESET, numframes = %d\n",numframes);
             numframes = 0;
-            TSTfirst_test = true;
+            num_feat = 0;
             TST_prep(frame,framegrey);
             TST_RESET(frame,framegrey);
+            generating_proposal = false;
             // PF_RESET();
             mode =  MODE_BEGIN;
             break;
         case MODE_TRAIN:
             printf("MODE_TRAIN, numframes = %d\n",numframes);
             numframes ++;
+            TST_train_frame ++;
+            printf("TST_train_frame = %d  ",TST_train_frame);
+            printf("TST_test_frame = %d\n",TST_test_frame);
             TST_prep(frame, framegrey);
             TST_TRAIN(frame, framegrey);
-            PF_train(frame,hsv_frame);
-            mode =  MODE_TEST;
+            if (TST_train_frame == 1)
+                PF_train(frame,hsv_frame);
+            if (TST_train_frame > 2){
+                mode =  MODE_TEST;
+                generating_proposal = true;
+            }
+//            cvWaitKey(0);
             break;
         case MODE_TEST:
             printf("MODE_TEST, numframes = %d\n",numframes);
 //            cvWaitKey(0);
             numframes ++;
             TST_prep(frame, framegrey);
-            is_detect = TST_TEST(frame, framegrey);
-//            num_match = 1;
-
-            if (TSTfirst_test && is_detect){
-              PF_init(frame,hsv_frame);
-              PF_test(frame, hsv_frame , TSTfirst_test);
-              TSTfirst_test = false;
-            }else{
-              PF_test(frame, hsv_frame , TSTfirst_test);
+            TST_TEST(frame, framegrey);
+            printf("TST_train_frame = %d  ",TST_train_frame);
+            printf("TST_test_frame = %d\n",TST_test_frame);
+            if (generating_proposal){
+                PFtimetoinit = Estimate_confidence();
             }
-            
+            num_match = 1;
+
+            if (PFtimetotest){
+              PF_test(frame, hsv_frame);
+//                cvWaitKey(0);
+            }
+
+            if (PFtimetoinit){
+                PF_init(frame,hsv_frame);
+                cvShowImage( "Video", frame );
+//                cvWaitKey(0);
+                PF_test(frame, hsv_frame);
+                cvShowImage( "Video", frame );
+//                cvWaitKey(0);
+                PFtimetoinit = false;
+                PFtimetotest = true;
+                generating_proposal = false;
+             }
             mode =  MODE_TEST;
             break;
     }
 
-    printf("numframes = %d\n", numframes);
     cvNamedWindow( "Video", 1 );
 
     cvShowImage( "Video", frame );

@@ -29,6 +29,22 @@ bool DescendingOrder(cv::KeyPoint pt1, cv::KeyPoint pt2) {
     return (pt1.response > pt2.response);
 }
 
+void initializeEstimate(int est_x, int est_y, int est_width, int est_height, float est_score){
+    estm = new estimate();
+    estm->pos_x = (float *)malloc (sizeof(float) * MAX_TRAIN_FRAMES);
+    estm->pos_y = (float *)malloc (sizeof(float) * MAX_TRAIN_FRAMES);
+    estm->width_record = (int *)malloc (sizeof(int) * MAX_TRAIN_FRAMES);
+    estm->height_record = (int *)malloc (sizeof(int) * MAX_TRAIN_FRAMES);
+    estm->score = (float *)malloc( sizeof(float) * MAX_TRAIN_FRAMES );
+    estm->pos_x[0] = est_x;
+    estm->pos_y[0] = est_y;
+    estm->width_record[0] = est_width;
+    estm->height_record[0] = est_height;
+    estm->score[0] = est_score;
+    estm->istrack = true;
+    TST_test_frame = 0;
+}
+
 // ######################################################################
 void initializeTracker(IplImage* pImageFrame, IplImage* pImageGray)
 {
@@ -68,8 +84,11 @@ void initializeTracker(IplImage* pImageFrame, IplImage* pImageGray)
     region[2] = GlobalVar::x1 + pow2[MTD_TRAIN_SCALES]*BTD_NUM_COLS*BTD_SAMPLE_STEP/2;
     region[3] = GlobalVar::y1 + pow2[MTD_TRAIN_SCALES]*BTD_NUM_ROWS*BTD_SAMPLE_STEP/2;
 
+    initializeEstimate(width/2, height/2, pow2[MTD_TRAIN_SCALES]*BTD_NUM_COLS*BTD_SAMPLE_STEP, pow2[MTD_TRAIN_SCALES]*BTD_NUM_ROWS*BTD_SAMPLE_STEP,0.000001);
+
     init_image_pyramid( pImageGray, ppPyramid_curr, nLevels );
     init_image_pyramid( pImageGray, ppPyramid_prev, nLevels );
+    PFtimetoinit = false;
 
     mode = MODE_BEGIN;
 //    return;
@@ -116,7 +135,7 @@ void TST_BEGIN(IplImage* pImageFrame, IplImage* pImageGray){
 }
 
 void TST_TRAIN(IplImage* pImageFrame, IplImage* pImageGray){
-    num_feat = 0;
+    // num_feat = 0;
     if ( num_feat == 0 )
     {
         for ( int i = nLevels - 1 ; i >= 0 ; i -- )
@@ -204,9 +223,10 @@ void TST_TRAIN(IplImage* pImageFrame, IplImage* pImageGray){
     }
 }
 
-int TST_TEST(IplImage* pImageFrame, IplImage* pImageGray){
+void TST_TEST(IplImage* pImageFrame, IplImage* pImageGray){
     num_feat = 0;
-    int detect_flag = 0;
+    TST_test_frame ++;
+    estm->istrack = false;
     for ( int i = nLevels - 1 ; i >= 0 ; i -- )
     {
         if ( num_feat >= max_num_feat ) break;
@@ -227,7 +247,6 @@ int TST_TEST(IplImage* pImageFrame, IplImage* pImageGray){
             {
                 float pt_x = keypoints[j].pt.x;
                 float pt_y = keypoints[j].pt.y;
-                // cvCircle(pImageFrame, cvPoint(pt_x,pt_y),2,CV_RGB(0,255,0), 1, 8, 0);
                 if ( pt_x*curr_pow >= region[0] && pt_x*curr_pow <= region[2] &&
                     pt_y*curr_pow >= region[1] && pt_y*curr_pow <= region[3] )
                 {
@@ -266,6 +285,8 @@ int TST_TEST(IplImage* pImageFrame, IplImage* pImageGray){
     float width_half = 0;
     float height_half = 0;
 
+    // pos_x[TST_train_frame] = track_x[0];
+    // pos_y[TST_train_frame] = track_y[0];
     int prev_x = track_x[0];
     int prev_y = track_y[0];
     float score_threshold = MTD_SCORE_THRESHOLD;
@@ -279,7 +300,7 @@ int TST_TEST(IplImage* pImageFrame, IplImage* pImageGray){
     // find best match
     if ( num_match > 0 )
     {
-
+        estm->istrack = true;
         int best_match = 0;
         int best_dist = (prev_x-track_x[0])*(prev_x-track_x[0])+(prev_y-track_y[0])*(prev_y-track_y[0]);
 
@@ -314,7 +335,6 @@ int TST_TEST(IplImage* pImageFrame, IplImage* pImageGray){
                 best_dist = (prev_x-track_x[i])*(prev_x-track_x[i])+(prev_y-track_y[i])*(prev_y-track_y[i]);
                 best_match = i;
             }
-
         }
 
 
@@ -331,15 +351,32 @@ int TST_TEST(IplImage* pImageFrame, IplImage* pImageGray){
             temp = track_score[0];track_score[best_match] = track_score[0]; track_score[0] = temp;
             rr = r[0];r[best_match] = r[0]; r[0] = rr;
         }
-        width_half  = trackMTD->get_mtd_width ( track_l[0], track_s[0] ) / 2;
+
+        if (generating_proposal){
+            if (!estm->istrack){
+                initializeEstimate(track_x[0], track_y[0], 2 * width_half + 1, 2 * height_half + 1, track_score[0]);
+            }else{
+                estm->pos_x[TST_test_frame] = track_x[0];
+                estm->pos_y[TST_test_frame] = track_y[0];
+                estm->width_record[TST_test_frame] = 2 * width_half + 1;
+                estm->height_record[TST_test_frame] = 2 * height_half + 1;
+                estm->score[TST_test_frame] = track_score[0];
+                estm->istrack = true;
+            }
+        }else if (PFtimetotest){
+            estm->velocity_x = track_x[0] - prev_x;
+            estm->velocity_y = track_y[0] - prev_y;
+        }
+        
+
+
+        width_half  = trackMTD->get_mtd_width( track_l[0], track_s[0] ) / 2;
         height_half = trackMTD->get_mtd_height( track_l[0], track_s[0] ) / 2;
         cvRectangle(pImageFrame,
                     cvPoint(track_x[0]-width_half,track_y[0]-height_half),
                     cvPoint(track_x[0]+width_half,track_y[0]+height_half),
                     CV_RGB(255,255,0), 2, 8, 0);
-
         regions = r;
-        detect_flag = 1;
     }
     else
     {
@@ -349,13 +386,43 @@ int TST_TEST(IplImage* pImageFrame, IplImage* pImageGray){
         width_half = 0;
         height_half = 0;
         track_score[0] = MTD_SCORE_THRESHOLD;
-        detect_flag = 0;
+        if (generating_proposal){
+            estm->pos_x[TST_test_frame] = track_x[0];
+            estm->pos_y[TST_test_frame] = track_y[0];
+            estm->width_record[TST_test_frame] = 2 * width_half + 1;
+            estm->height_record[TST_test_frame] = 2 * height_half + 1;
+            estm->score[TST_test_frame] = track_score[0];
+            estm->istrack = false;
+        }
     }
     region[0] = track_x[0]-width_half;
     region[1] = track_y[0]-height_half;
     region[2] = track_x[0]+width_half;
     region[3] = track_y[0]+height_half;
+}
 
+bool Estimate_confidence(){
+    // if (TST_train_frame > MAX_TRAIN_FRAMES)
+    //     return false;
+    if (!estm->istrack){
+        TST_test_frame = -1;
+        return false;
+    }
+    if (TST_test_frame < MIN_TRAIN_FRAMES)
+        return false;
 
-    return detect_flag;
+    // to-do: design a confidency functon and check confifence
+    estm->width = estm->width_record[1];
+    estm->height = estm->height_record[1];
+    for (int i = 2; i <= TST_test_frame; i++){
+        estm->velocity_x += estm->pos_x[i] - estm->pos_x[i-1];
+        estm->velocity_y += estm->pos_y[i] - estm->pos_y[i-1];
+        estm->width += estm->width_record[i];
+        estm->height += estm->height_record[i];
+    }
+    estm->velocity_x /= (TST_test_frame - 1);
+    estm->velocity_y /= TST_test_frame - 1;
+    estm->width /= TST_test_frame;
+    estm->height /= TST_test_frame;
+    return true;
 }

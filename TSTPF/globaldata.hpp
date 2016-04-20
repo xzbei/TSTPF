@@ -19,6 +19,20 @@
 
 //using namespace GlobalConst;
 
+//typedef struct estimate {
+//    int * pos_x;
+//    int * pos_y;
+//    int * width_record;
+//    int * height_record;
+//    float confidence;
+//    float velocity_x;
+//    float velocity_y;
+//    int width;
+//    int height;
+//    float * score;
+//    bool istrack;
+//} estimate;
+
 namespace GlobalConst
 {
     extern const int PARTICLES;
@@ -44,6 +58,10 @@ namespace GlobalConst
     extern const int MTD_NUM_ANCHORS;
     extern const float MTD_SCORE_THRESHOLD;
     extern const bool MTD_PRUNE_TRACKING;
+    extern const float RESART_TRAIN_THRES;
+    extern const float START_TRACKING_THRES;
+    extern const float MAX_TRAIN_FRAMES;
+    extern const float MIN_TRAIN_FRAMES;
 }
 
 namespace GlobalVar
@@ -89,9 +107,14 @@ namespace GlobalVar
     extern int y1;
     extern float width_half;
     extern float height_half;
-    extern bool TSTfirst_test;
+    extern bool PFtimetoinit;
+    extern bool PFtimetotest;
+    extern bool generating_proposal;
     extern int visualize_num_intervals;
     extern int visualize_intervals2;
+    extern int TST_train_frame;
+    extern int TST_test_frame;
+    extern estimate* estm;
 }
 
 #endif /*globaldata_hpp*/

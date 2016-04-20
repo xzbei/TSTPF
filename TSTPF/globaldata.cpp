@@ -18,10 +18,10 @@ using namespace GlobalConst;
 
 namespace GlobalConst
 {
-    const int PARTICLES = 2000;
+    const int PARTICLES = 1000;
     const int MAX_OBJECTS = 1;
-    const float U0 = 0.25;
-    const float U1 = 0.25;
+    const float U0 = 0.2;
+    const float U1 = 0.2;
 
     const int MODE_RESET = -1;
     const int MODE_BEGIN = 0;
@@ -45,6 +45,10 @@ namespace GlobalConst
 //    const float MTD_SCORE_THRESHOLD = 0.2;
     const float MTD_SCORE_THRESHOLD = 1;
     const bool MTD_PRUNE_TRACKING = true;
+    const float RESART_TRAIN_THRES = 0.2;
+    const float START_TRACKING_THRES = 0.5;
+    const float MAX_TRAIN_FRAMES = 20;
+    const float MIN_TRAIN_FRAMES = 5;
 }
 
 namespace GlobalVar
@@ -89,7 +93,12 @@ namespace GlobalVar
     int y1;
     float width_half;
     float height_half;
-    bool TSTfirst_test = true;
+    bool PFtimetoinit = false;
+    bool PFtimetotest = false;
+    bool generating_proposal = false;
     int visualize_num_intervals = 20;
-    int visualize_intervals2 = 20;
+    int visualize_intervals2 = 50;
+    int TST_train_frame = 0;
+    int TST_test_frame = 0;
+    estimate* estm;
 }

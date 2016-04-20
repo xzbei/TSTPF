@@ -13,13 +13,14 @@
 #include <stdio.h>
 #include <math.h>
 #include <opencv/highgui.h>
+
 #define BB0  1
 
-#define TRANS_X_STD /*5.0*/ 30
-#define TRANS_Y_STD /*2.5*/ 30
-#define X_init_STD /*5.0*/ 50
-#define Y_init_STD /*2.5*/ 50
-#define TRANS_S_STD 0.05
+#define TRANS_X_STD /*5.0*/ 20
+#define TRANS_Y_STD /*2.5*/ 20
+#define X_init_STD /*5.0*/ 100
+#define Y_init_STD /*2.5*/ 100
+#define TRANS_S_STD 0.01
 
 #define EPSILON 2
 
@@ -28,7 +29,7 @@
 #define A2 /*-1.0*/ -1
 #define B0  1.0000
 
-particle* init_distribution( CvRect* regions, histogram** histos, int n, int p, int w, int h, float U0, float * track_score, int num_match)
+particle* init_distribution( CvRect* regions, histogram** histos, int n, int p, int w, int h, float U0, float * track_score, int num_match, estimate estm)
 {
     particle* particles;
     float x[num_match], y[num_match];
@@ -73,21 +74,29 @@ particle* init_distribution( CvRect* regions, histogram** histos, int n, int p, 
       temp2 = rand() / (float)(RAND_MAX);
 
       if (temp2<=U0){
-          particles[k].x0 = x[selectregion] + B0 * gaussrand(0,X_init_STD);
-          particles[k].y0 = y[selectregion] + B0 * gaussrand(0,Y_init_STD);
-
-          particles[k].x0 = particles[k].xp = particles[k].x = MAX( 0.0, MIN( (float)w - 1.0, particles[k].x0 ) );
-          particles[k].y0 = particles[k].yp = particles[k].y = MAX( 0.0, MIN( (float)h - 1.0, particles[k].y0 ) );
+        //   particles[k].x0 = x[selectregion] + B0 * gaussrand(0,X_init_STD);
+        //   particles[k].y0 = y[selectregion] + B0 * gaussrand(0,Y_init_STD);
+          //
+        //   particles[k].x0 = particles[k].xp = particles[k].x = MAX( 0.0, MIN( (float)w - 1.0, particles[k].x0 ) );
+        //   particles[k].y0 = particles[k].yp = particles[k].y = MAX( 0.0, MIN( (float)h - 1.0, particles[k].y0 ) );
+            particles[k].x = MAX( 0.0, MIN( (float)w - 1.0, x[selectregion] ) );
+            particles[k].y = MAX( 0.0, MIN( (float)h - 1.0, y[selectregion] ) );
+            particles[k].xp = particles[k].x - estm.velocity_x;
+            particles[k].yp = particles[k].y - estm.velocity_y;
+            particles[k].xp = MAX( 0.0, MIN( (float)w - 1.0, particles[k].xp ) );
+            particles[k].yp = MAX( 0.0, MIN( (float)h - 1.0, particles[k].yp ) );
           particles[k].sp = particles[k].s = 1.0;
           particles[k].width = width[selectregion];
           particles[k].height = height[selectregion];
+        //   particles[k].width = estm->width;
+        //   particles[k].height = estm->height;
           particles[k].histo = histos[0];
           particles[k].alive = 1;
           particles[k++].w = 0;
       }
       else{
-          particles[k].x0 = particles[k].xp = particles[k].x = 0.0;
-          particles[k].y0 = particles[k].yp = particles[k].y = 0.0;
+          particles[k].xp = particles[k].x = 0.0;
+          particles[k].yp = particles[k].y = 0.0;
           particles[k].sp = particles[k].s = 0.0;
           particles[k].width = width[selectregion];
           particles[k].height = height[selectregion];
@@ -102,14 +111,18 @@ particle* init_distribution( CvRect* regions, histogram** histos, int n, int p, 
 //    i = 0;
     while( k < p )
     {
-
         selectregion = rand() % num_match;
-        particles[k].x0 = particles[k].xp = particles[k].x = x[selectregion];
-        particles[k].y0 = particles[k].yp = particles[k].y = y[selectregion];
-
+        particles[k].x = MAX( 0.0, MIN( (float)w - 1.0, x[selectregion] ) );
+        particles[k].y = MAX( 0.0, MIN( (float)h - 1.0, y[selectregion] ) );
+        particles[k].xp = particles[k].x - estm.velocity_x;
+        particles[k].yp = particles[k].y - estm.velocity_y;
+        particles[k].xp = MAX( 0.0, MIN( (float)w - 1.0, particles[k].xp ) );
+        particles[k].yp = MAX( 0.0, MIN( (float)h - 1.0, particles[k].yp ) );
         particles[k].sp = particles[k].s = 1.0;
         particles[k].width = width[selectregion];
         particles[k].height = height[selectregion];
+        //   particles[k].width = estm->width;
+        //   particles[k].height = estm->height;
         particles[k].histo = histos[0];
         particles[k++].w = 0;
         particles[k].alive = 1;
@@ -153,15 +166,12 @@ double gaussrand(double E, double V)
  @return Returns a new particle sampled based on <EM>p</EM>'s transition
  model
  */
-particle transition( particle p, int w, int h,float U0,float U1, CvRect* regions,histogram** histos ,float * np, int * xx, int * yy, int * ww, int * hh , int num_match)
+particle transition( particle p, int w, int h,float U0,float U1, CvRect* regions,histogram** histos ,float * np, int * xx, int * yy, int * ww, int * hh , int num_match, estimate estm)
 {
     //    srand(time(0));
     float x, y, s;
     float temp1;
     particle pn;
-    // int width,height;
-    // width = regions[0].width;
-    // height = regions[0].height;
     int selectregion = -1;
 
     if (p.alive ==0 && (rand()/(float)(RAND_MAX))<=U0){
@@ -176,16 +186,20 @@ particle transition( particle p, int w, int h,float U0,float U1, CvRect* regions
         }
 
         if (selectregion == -1) selectregion = 0;
-        pn.x0 = xx[selectregion] + B0 * gaussrand(0,X_init_STD);
-        pn.y0 = yy[selectregion] + B0 * gaussrand(0,Y_init_STD);
-        pn.x0 = pn.xp = pn.x = MAX( 0.0, MIN( (float)w - 1.0, pn.x0 ) );
-        pn.y0 = pn.yp = pn.y = MAX( 0.0, MIN( (float)h - 1.0, pn.y0 ) );
+
+        pn.x = MAX( 0.0, MIN( (float)w - 1.0, xx[selectregion]+ B0 * gaussrand(0,X_init_STD) ) );
+        pn.y = MAX( 0.0, MIN( (float)h - 1.0, yy[selectregion]+ B0 * gaussrand(0,Y_init_STD) ) );
+        pn.xp = pn.x - estm.velocity_x;
+        pn.yp = pn.y - estm.velocity_y;
+        pn.xp = MAX( 0.0, MIN( (float)w - 1.0, pn.xp ) );
+        pn.yp = MAX( 0.0, MIN( (float)h - 1.0, pn.yp ) );
         pn.sp = pn.s = 1.0;
-        pn.width = ww[0];
-        pn.height = hh[0];
+        pn.width = ww[selectregion];
+        pn.height = hh[selectregion];
         pn.histo = histos[0];
         pn.alive = 1;
         pn.w = 0;
+
     }//born
     else if (p.alive == 1 && (rand()/(float)(RAND_MAX))<=1-U1){
 //        x = 2 * ( p.x - p.xp ) + 1 * ( p.xp - p.x0 ) +
@@ -196,14 +210,13 @@ particle transition( particle p, int w, int h,float U0,float U1, CvRect* regions
 //        B0 * gaussrand(0, TRANS_Y_STD) + p.y0;
         y = p.y + 1 * (p.y - p.yp) + B0 * gaussrand(0, TRANS_Y_STD);
         pn.y = MAX( 0.0, MIN( (float)h - 1.0, y ) );
-        s = A1 * ( p.s - 1.0 ) + A2 * ( p.sp - 1.0 ) +
-        B0 * gaussrand(0, TRANS_S_STD) + 1.0;
+        s = p.s + 1 * (p.s - p.sp) + B0 * gaussrand(0, TRANS_S_STD);
+//        s = A1 * ( p.s - 1.0 ) + A2 * ( p.sp - 1.0 ) +
+//        B0 * gaussrand(0, TRANS_S_STD) + 1.0;
         pn.s = MAX( 0.1, s );
         pn.xp = p.x;
         pn.yp = p.y;
         pn.sp = p.s;
-        pn.x0 = p.x0;
-        pn.y0 = p.y0;
         pn.width = p.width;
         pn.height = p.height;
         pn.histo = p.histo;
@@ -212,8 +225,8 @@ particle transition( particle p, int w, int h,float U0,float U1, CvRect* regions
 
     }//maintain
     else {
-        pn.x0 = pn.xp = pn.x = 0.0;
-        pn.y0 = pn.yp = pn.y = 0.0;
+        pn.xp = pn.x = 0.0;
+        pn.yp = pn.y = 0.0;
         pn.sp = pn.s = 0.0;
         pn.width = 0.0;
         pn.height = 0.0;
@@ -388,7 +401,6 @@ particle* resample3( particle* particles, int n ,int num_particles)
         for (j=1; j<=n; j++) {
             if (temp<weightsum[j]){
                 new_particles[i] = particles[j-1];
-                //                printf("i = %d, j = %d\n",i,j);
                 break;
             }
         }
@@ -487,9 +499,9 @@ float euclidean_distance(particle p1, particle p2){
     return sqrt(total);
 }
 
-float gaussian_kernel(float distance, float kernel_bandwidth){
+float gaussian_kernel(float distance, float kernel_bandwidth,float scale){
     float temp;
-    temp =  exp(-(distance*distance/100) / (kernel_bandwidth));
+    temp =  exp(-(distance*distance/scale) / (kernel_bandwidth));
     return temp;
 }
 
@@ -504,27 +516,9 @@ particle Meanshift_cluster( particle* particles, int n, float kernel_bandwidth,i
     int i;
     int iter = 0;
     float s = 0,ww = 0,hh = 0;
-    int nums = 3;
+    int nums = 10;
+    center_particle.s = 1;
 
-    for (i=0;i<nums;i++){
-        s+= particles[i].s;
-    }
-    s /= (float)nums;
-    center_particle.s = s;
-//    center_particle.s = 1;
-
-    for (i=0;i<nums;i++){
-        ww+= (float)particles[i].width;
-    }
-    ww /= (float)nums;
-
-    for (i=0;i<nums;i++){
-        hh+= (float)particles[i].height;
-    }
-    hh /= (float)nums;
-
-    center_particle.width = ww;
-    center_particle.height = hh;
 
     do{
         iter ++;
@@ -535,7 +529,7 @@ particle Meanshift_cluster( particle* particles, int n, float kernel_bandwidth,i
         total_weight = 0.0;
         for(i = 0;i < n; i++){
             float distance = euclidean_distance(particles[i],center_particle);
-            float weight = gaussian_kernel(distance,kernel_bandwidth);
+            float weight = gaussian_kernel(distance,kernel_bandwidth,100);
             xshift += weight*(particles[i].x - center_particle.x);
             yshift += weight*(particles[i].y - center_particle.y);
             total_weight += weight;
@@ -548,7 +542,32 @@ particle Meanshift_cluster( particle* particles, int n, float kernel_bandwidth,i
 
         meanshift_distance = euclidean_distance(prev_center_p,center_particle);
 
-    }while (iter<500 && meanshift_distance > EPSILON);
+    }while (iter<100 && meanshift_distance > EPSILON);
+
+    iter = 0;
+    ww = particles[0].width;
+    float wshift;
+    float prev_ww;
+    do{
+        iter ++;
+        prev_ww = ww;
+        meanshift_distance = 0.01 + 1.0;
+        total_weight = 0.0;
+        wshift = 0.0;
+        for(i = 0;i < n; i++){
+            float distance = abs(particles[i].width - ww);
+            float weight = gaussian_kernel(distance,0.5,1);
+            wshift += weight*(particles[i].width - ww);
+            total_weight += weight;
+        }
+        wshift /= total_weight;
+        ww += wshift;
+
+        meanshift_distance = abs(ww - prev_ww);
+
+    }while (iter < 50 && meanshift_distance > 0.01);
+    center_particle.width = ww;
+    center_particle.height = ww;
     return center_particle;
 }
 
@@ -637,8 +656,8 @@ void visualize_particle_heatmap2(IplImage* frame, particle* particles, int num_p
     int frame_height = frame->height;
     float max_hist = 0;
     float r,g,b;
-    float heatmap_hist[frame_width][frame_width];
-    memset(heatmap_hist, 0, frame_width * frame_width);
+    float heatmap_hist[frame_width][frame_height];
+    memset(heatmap_hist, 0, frame_width * frame_height);
 
     for (int i=0; i < frame_width ; i++){
         for (int j=0; j < frame_height; j++){
@@ -652,9 +671,12 @@ void visualize_particle_heatmap2(IplImage* frame, particle* particles, int num_p
             int tempy = particles[i].y;
             for (int j = -visualize_intervals2; j<=visualize_intervals2 ;j++){
                 for (int k = -visualize_intervals2; k<=visualize_intervals2 ;k++){
-                    heatmap_hist[tempx + j][tempy + k] ++;
-                    if (heatmap_hist[tempx + j][tempy + k] > max_hist){
-                        max_hist = heatmap_hist[tempx + j][tempy + k];
+                    if (tempx + j < frame_width && tempy + k < frame_height && tempx + j >= 0 && tempy + k >= 0)
+                    {
+                        heatmap_hist[tempx + j][tempy + k] ++;
+                        if (heatmap_hist[tempx + j][tempy + k] > max_hist){
+                            max_hist = heatmap_hist[tempx + j][tempy + k];
+                        }
                     }
                 }
             }

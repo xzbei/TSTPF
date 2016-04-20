@@ -10,8 +10,9 @@
 #define particles_h
 
 #include <stdio.h>
-
+//#include "globaldata.hpp"
 #include "observation.h"
+#include <stdbool.h>
 //#include <opencv/highgui.h>
 //#include <gsl/gsl_rng.h>
 
@@ -32,10 +33,6 @@ extern "C" {
         /**< previous y coordinate */
         float sp;
         /**< previous scale */
-        float x0;
-        /**< original x coordinate */
-        float y0;
-        /**< original y coordinate */
         int width;
         /**< original width of region described by particle */
         int height;
@@ -46,14 +43,29 @@ extern "C" {
         /**< weight */
         int alive;
     } particle;
+    
+    
+    typedef struct estimate {
+        float * pos_x;
+        float * pos_y;
+        int * width_record;
+        int * height_record;
+        float confidence;
+        float velocity_x;
+        float velocity_y;
+        int width;
+        int height;
+        float * score;
+        bool istrack;
+    } estimate;
 
     particle *init_distribution(CvRect *regions, histogram **histos,
-                                int n, int p, int w, int h, float U0, float * track_score, int num_match);
+                                int n, int p, int w, int h, float U0, float * track_score, int num_match, estimate estm);
 
     double gaussrand(double E, double V);
 
     particle transition(particle p, int w, int h, float U0, float U1, CvRect *regions,
-                        histogram **histos, float * np, int * xx, int * yy, int * ww, int * hh ,int num_match);
+                        histogram **histos, float * np, int * xx, int * yy, int * ww, int * hh ,int num_match,estimate estm);
 
     void normalize_weights(particle *particles, int n);
     particle *resample(particle *particles, int n);
@@ -69,9 +81,9 @@ extern "C" {
     //void display_particle(Mat mRgb, particle p, CvScalar color);
     int calculate_alive(particle *particles, int n);
     float euclidean_distance(particle p1, particle p2);
-    float gaussian_kernel(float distance, float kernel_bandwidth);
+    float gaussian_kernel(float distance, float kernel_bandwidth,float scale);
     particle Meanshift_cluster( particle* particles, int n, float kernel_bandwidth,int framewidth, int frameheight);
-    
+
 //    void DrawTransRec(IplImage* img, float ** heatmap_hist, int num_x, int num_y, int w_interval, int h_interval, float alpha);
     void getHeatMapColor(float value, float *red, float *green, float *blue);
     void visualize_particle_heatmap(IplImage* frame, particle* particles, int num_particles, int visualize_num_intervals, int num_alives);

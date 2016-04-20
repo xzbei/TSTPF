@@ -48,19 +48,27 @@ void PF_train(IplImage* frame, IplImage* hsv_frame){
   ww = ( ww % 2 )? ww : ww+1;
   hh = ( hh % 2 )? hh : hh+1;
   r[0] = cvRect( region[0], region[1], ww, hh );
+    cvRectangle(frame, cvPoint(region[0], region[1]), cvPoint(region[2], region[3]), CV_RGB(0, 0, 255));
   regions = r;
   ref_histos = compute_ref_histos( hsv_frame, regions, num_objects );
 }
 
 particle* PF_init(IplImage* pImageFrame, IplImage* hsv_frame){
-    particles = init_distribution( regions, ref_histos, num_match, num_particles , frame->width, frame->height, U0, track_score, num_match);
+    particles = init_distribution( regions, ref_histos, num_match, num_particles , frame->width, frame->height, U0, track_score, num_match, *estm);
+
+    int i;
+    for (i = 0;i<num_particles; i++){
+        if (particles[i].alive == 1){
+            cvCircle(frame, cvPoint(particles[i].x, particles[i].y), 5, CV_RGB(0, 255, 255),-1);
+        }
+    }
     num = calculate_alive(particles,num_particles);
-    printf("alive particles %d\n",num);
+    // printf("alive particles %d\n",num);
 
     return particles;
 }
 
-void PF_test(IplImage* frame, IplImage* hsv_frame, bool & TSTfirst_test){
+void PF_test(IplImage* frame, IplImage* hsv_frame){
 
     float sum_score;
     int x[num_match], y[num_match];
@@ -84,9 +92,16 @@ void PF_test(IplImage* frame, IplImage* hsv_frame, bool & TSTfirst_test){
 
     for( j = 0; j < num_particles; j++ )
     {
-//      if (!TSTfirst_test){
-        particles[j] = transition( particles[j], frame->width, frame->height, U0,U1,regions, ref_histos, np, x, y, width, height, num_match);
-//      }
+        int aa = particles[j].alive;
+        particles[j] = transition( particles[j], frame->width, frame->height, U0,U1,regions, ref_histos, np, x, y, width, height, num_match,*estm);
+//        if (aa == 0 && particles[j].alive == 1){
+//            cvCircle(frame, cvPoint(particles[j].x, particles[j].y), 2, CV_RGB(0, 255, 255),-1);
+//        }//born
+//
+//        if (aa == 1 && particles[j].alive == 1){
+//            cvCircle(frame, cvPoint(particles[j].x, particles[j].y), 2, CV_RGB(255, 100, 255),-1);
+//        }//maintain
+
         float s;
         s = particles[j].s;
         if (particles[j].alive == 1){
@@ -100,7 +115,6 @@ void PF_test(IplImage* frame, IplImage* hsv_frame, bool & TSTfirst_test){
             }
         }
     }
-//    if (!TSTfirst_test) TSTfirst_test = false;
 
     qsort( particles, num_particles, sizeof( particle ), &particle_cmp2 );
 
@@ -125,13 +139,10 @@ void PF_test(IplImage* frame, IplImage* hsv_frame, bool & TSTfirst_test){
       }
     }
 
-    particle center_particle = Meanshift_cluster(particles,num,50,frame->width, frame->height);
-//    center_particle.width = width[0];
-//    center_particle.height = height[0];
+    particle center_particle = Meanshift_cluster(particles,num,100,frame->width, frame->height);
+    cvCircle(frame, CvPoint(center_particle.x,center_particle.y), 4, CV_RGB(255, 0, 0));
     x3 = round( center_particle.x - 0.5 * center_particle.s * center_particle.width );
     y3 = round( center_particle.y - 0.5 * center_particle.s * center_particle.height );
-//     x3 = round( center_particle.x);
-//     y3 = round( center_particle.y);
     x2 = x3 + round( center_particle.s * center_particle.width );
     y2 = y3 + round( center_particle.s * center_particle.height );
     x3 = MAX(0.0,x3);
@@ -143,10 +154,9 @@ void PF_test(IplImage* frame, IplImage* hsv_frame, bool & TSTfirst_test){
                                cvRound(center_particle.height*center_particle.s),center_particle.histo);
 
 //    if (numframes == 2){
-    if (TSTfirst_test){
+    if (PFtimetoinit){
         threshold1 = score1*0.1;
-        printf("threshold = %f\n",threshold1);
-        cvRectangle( frame, Point( x3*SCALE, y3*SCALE), Point( x2*SCALE, y2*SCALE ), CV_RGB(255, 0, 0), 3, 8, 0 );
+        cvRectangle( frame, Point( x3*SCALE, y3*SCALE), Point( x2*SCALE, y2*SCALE ), CV_RGB(255, 0, 0), 3, 8, 0);
     }else {
         if (score1 >= threshold1)
             cvRectangle(frame, Point(x3 * SCALE, y3 * SCALE), Point(x2 * SCALE, y2 * SCALE),
@@ -155,8 +165,7 @@ void PF_test(IplImage* frame, IplImage* hsv_frame, bool & TSTfirst_test){
             cvRectangle(frame, Point(x3 * SCALE, y3 * SCALE), Point(x2 * SCALE, y2 * SCALE),
                       CV_RGB(0, 255, 0), 3, 8, 0);
     }
-    
+
 //    visualize_particle_heatmap(frame, particles, num_particles, visualize_num_intervals, num);
-    visualize_particle_heatmap2(frame
-                                , particles, num_particles, visualize_intervals2, num);
+    visualize_particle_heatmap2(frame, particles, num_particles, visualize_intervals2, num);
 }

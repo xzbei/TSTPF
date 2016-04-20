@@ -32,6 +32,6 @@ using namespace GlobalVar;
 
 void PF_train(IplImage* frame, IplImage* hsv_frame);
 particle* PF_init(IplImage* pImageFrame, IplImage* hsv_frame);
-void PF_test(IplImage* frame, IplImage* hsv_frame, bool & TSTfirst_test);
+void PF_test(IplImage* frame, IplImage* hsv_frame);
 
 #endif /* PFTrack_hpp */

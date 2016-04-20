@@ -31,11 +31,13 @@ using namespace cv;
 using namespace std;
 
 bool DescendingOrder(cv::KeyPoint pt1, cv::KeyPoint pt2);
+void initializeEstimate(int est_x, int est_y, int est_width, int est_height, float est_score);
 void initializeTracker(IplImage* pImageFrame, IplImage* pImageGray);
 void TST_prep(IplImage* pImageFrame, IplImage* pImageGray);
 void TST_RESET(IplImage* pImageFrame, IplImage* pImageGray);
 void TST_BEGIN(IplImage* pImageFrame, IplImage* pImageGray);
 void TST_TRAIN(IplImage* pImageFrame, IplImage* pImageGray);
-int TST_TEST(IplImage* pImageFrame, IplImage* pImageGray);
+void TST_TEST(IplImage* pImageFrame, IplImage* pImageGray);
+bool Estimate_confidence();
 
 #endif /* TSTRecognizer_hpp */

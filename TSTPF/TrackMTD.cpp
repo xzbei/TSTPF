@@ -28,7 +28,6 @@ void TrackMTD::Initialize( int num_row, int num_col, int num_bin, int num_step, 
     width = _width;
     height = _height;
 
-
     // init BTD filters for intensity and gradient orientations
     btd_filt_i = (BTD_Filter **)malloc( sizeof(BTD_Filter *) * num_scale );
     btd_filt_g = (BTD_Filter **)malloc( sizeof(BTD_Filter *) * num_scale );
