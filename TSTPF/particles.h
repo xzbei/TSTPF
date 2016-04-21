@@ -20,6 +20,30 @@
 extern "C" {
 #endif
 
+    // typedef struct particle {
+    //     float x;
+    //     /**< current x coordinate */
+    //     float y;
+    //     /**< current y coordinate */
+    //     float s;
+    //     /**< scale */
+    //     float xp;
+    //     /**< previous x coordinate */
+    //     float yp;
+    //     /**< previous y coordinate */
+    //     float sp;
+    //     /**< previous scale */
+    //     int width;
+    //     /**< original width of region described by particle */
+    //     int height;
+    //     /**< original height of region described by particle */
+    //     histogram *histo;
+    //     /**< reference histogram describing region being tracked */
+    //     float w;
+    //     /**< weight */
+    //     int alive;
+    // } particle;
+
     typedef struct particle {
         float x;
         /**< current x coordinate */
@@ -27,10 +51,11 @@ extern "C" {
         /**< current y coordinate */
         float s;
         /**< scale */
-        float xp;
-        /**< previous x coordinate */
-        float yp;
-        /**< previous y coordinate */
+        float v_x; // x velocity (pos_x[t] - pos_x[t-1])
+        float v_y; // y velocity (pos_y[t] - pos_y[t-1])
+        float av_x; // accelerate velocity x (pos_x[t] - pos_x[t-1]) - (pos_x[t-1] - pos_x[t-2])
+        float av_y; // accelerate velocity y (pos_y[t] - pos_y[t-1]) - (pos_y[t-1] - pos_y[t-2])
+
         float sp;
         /**< previous scale */
         int width;
@@ -43,8 +68,8 @@ extern "C" {
         /**< weight */
         int alive;
     } particle;
-    
-    
+
+
     typedef struct estimate {
         float * pos_x;
         float * pos_y;
@@ -53,6 +78,8 @@ extern "C" {
         float confidence;
         float velocity_x;
         float velocity_y;
+        float accelerate_vx;
+        float accelerate_vy;
         int width;
         int height;
         float * score;

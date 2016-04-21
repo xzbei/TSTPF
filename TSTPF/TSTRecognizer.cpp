@@ -364,10 +364,15 @@ void TST_TEST(IplImage* pImageFrame, IplImage* pImageGray){
                 estm->istrack = true;
             }
         }else if (PFtimetotest){
+            float tempx,tempy;
+            tempx = estm->velocity_x;
+            tempy = estm->velocity_y;
             estm->velocity_x = track_x[0] - prev_x;
             estm->velocity_y = track_y[0] - prev_y;
+            estm->accelerate_vx = estm->velocity_x - tempx;
+            estm->accelerate_vx = estm->velocity_y - tempy;
         }
-        
+
 
 
         width_half  = trackMTD->get_mtd_width( track_l[0], track_s[0] ) / 2;
@@ -405,7 +410,7 @@ bool Estimate_confidence(){
     // if (TST_train_frame > MAX_TRAIN_FRAMES)
     //     return false;
     if (!estm->istrack){
-        TST_test_frame = -1;
+        TST_test_frame = 0;
         return false;
     }
     if (TST_test_frame < MIN_TRAIN_FRAMES)
@@ -414,15 +419,33 @@ bool Estimate_confidence(){
     // to-do: design a confidency functon and check confifence
     estm->width = estm->width_record[1];
     estm->height = estm->height_record[1];
-    for (int i = 2; i <= TST_test_frame; i++){
-        estm->velocity_x += estm->pos_x[i] - estm->pos_x[i-1];
-        estm->velocity_y += estm->pos_y[i] - estm->pos_y[i-1];
-        estm->width += estm->width_record[i];
-        estm->height += estm->height_record[i];
+    estm->accelerate_vx = 0;
+    estm->accelerate_vy = 0;
+    estm->velocity_x = 0;
+    estm->velocity_y = 0;
+     for (int i = 2; i <= TST_test_frame; i++){
+         estm->velocity_x += estm->pos_x[i] - estm->pos_x[i-1];
+         estm->velocity_y += estm->pos_y[i] - estm->pos_y[i-1];
+         estm->width += estm->width_record[i];
+         estm->height += estm->height_record[i];
+     }
+     estm->velocity_x /= (TST_test_frame - 1);
+     estm->velocity_y /= TST_test_frame - 1;
+     estm->width /= TST_test_frame;
+     estm->height /= TST_test_frame;
+
+//    estm->velocity_x = estm->pos_x[TST_test_frame] - estm->pos_x[TST_test_frame - 1];
+//    estm->velocity_y = estm->pos_y[TST_test_frame] - estm->pos_y[TST_test_frame - 1];
+
+    for (int i = 3; i <= TST_test_frame; i++){
+        estm->accelerate_vx += estm->pos_x[i] - 2 * estm->pos_x[i-1] + estm->pos_x[i-2];
+        estm->accelerate_vy += estm->pos_y[i] - 2 * estm->pos_y[i-1] + estm->pos_y[i-2];
     }
-    estm->velocity_x /= (TST_test_frame - 1);
-    estm->velocity_y /= TST_test_frame - 1;
-    estm->width /= TST_test_frame;
-    estm->height /= TST_test_frame;
+    estm->accelerate_vx /= (TST_test_frame - 2);
+    estm->accelerate_vy /= (TST_test_frame - 2);
+    
+//    estm->velocity_x += TST_test_frame / 2 * estm->accelerate_vx;
+//    estm->velocity_y += TST_test_frame / 2 * estm->accelerate_vy;
+    
     return true;
 }

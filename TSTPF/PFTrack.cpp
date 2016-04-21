@@ -155,7 +155,7 @@ void PF_test(IplImage* frame, IplImage* hsv_frame){
 
 //    if (numframes == 2){
     if (PFtimetoinit){
-        threshold1 = score1*0.1;
+        threshold1 = score1*0.05;
         cvRectangle( frame, Point( x3*SCALE, y3*SCALE), Point( x2*SCALE, y2*SCALE ), CV_RGB(255, 0, 0), 3, 8, 0);
     }else {
         if (score1 >= threshold1)

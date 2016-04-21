@@ -18,10 +18,10 @@ using namespace GlobalConst;
 
 namespace GlobalConst
 {
-    const int PARTICLES = 1000;
+    const int PARTICLES = 2000;
     const int MAX_OBJECTS = 1;
-    const float U0 = 0.2;
-    const float U1 = 0.2;
+    const float U0 = 0.4;
+    const float U1 = 0.4;
 
     const int MODE_RESET = -1;
     const int MODE_BEGIN = 0;
@@ -43,7 +43,7 @@ namespace GlobalConst
     const int MTD_NUM_SCALE   = 3;
     const int MTD_NUM_ANCHORS   = 3;
 //    const float MTD_SCORE_THRESHOLD = 0.2;
-    const float MTD_SCORE_THRESHOLD = 1;
+    const float MTD_SCORE_THRESHOLD = 0.3;
     const bool MTD_PRUNE_TRACKING = true;
     const float RESART_TRAIN_THRES = 0.2;
     const float START_TRACKING_THRES = 0.5;

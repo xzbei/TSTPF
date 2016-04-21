@@ -29,9 +29,14 @@ using namespace GlobalVar;
 #define MODE_TRAIN 1
 #define MODE_TEST 2
 
+#define EXPORT_BASE "/Users/beixinzhu/Desktop/movie_result/bag_slow_speed/frame_"
+#define EXPORT_EXTN ".png"
+
+bool export_ = true;
 CvScalar color;
-char* vid_file = "/Users/beixinzhu/Documents/UCLA/visionlab/testmovie/bag.mp4";
+char* vid_file = "/Users/beixinzhu/Documents/UCLA/visionlab/testmovie/bag_slow_speed.mp4";
 void on_mouse(int event, int x, int y, int flags, void* param );
+int export_frame( IplImage* frame, int i );
 
 int main( int argc, char** argv )
 {
@@ -129,6 +134,9 @@ int main( int argc, char** argv )
     cvNamedWindow( "Video", 1 );
 
     cvShowImage( "Video", frame );
+      
+      if (export_)
+          export_frame(frame,numframes);
     cvSetMouseCallback("Video", &on_mouse,0);
 //    cvWaitKey(0);
 
@@ -180,4 +188,17 @@ void on_mouse(int event, int x, int y, int flags, void* param )
 //        break;
     }
   }
+}
+
+
+int export_frame( IplImage* frame, int i )
+{
+  char name[ strlen(EXPORT_BASE) + strlen(EXPORT_EXTN) + 4 ];
+  char num[5];
+
+  snprintf( num, 5, "%04d", i );
+  strcpy( name, EXPORT_BASE );
+  strcat( name, num );
+  strcat( name, EXPORT_EXTN );
+  return cvSaveImage( name, frame ,0);
 }
