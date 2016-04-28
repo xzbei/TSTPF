@@ -34,7 +34,7 @@ using namespace GlobalVar;
 
 bool export_ = false;
 CvScalar color;
-char* vid_file = "/Users/beixinzhu/Documents/UCLA/visionlab/testmovie/bag_ac_speed.mp4";
+char* vid_file = "/Users/beixinzhu/Documents/UCLA/visionlab/testmovie/Multiobject.mp4";
 void on_mouse(int event, int x, int y, int flags, void* param );
 int export_frame( IplImage* frame, int i );
 
@@ -42,10 +42,9 @@ int main( int argc, char** argv )
 {
   CvCapture* video;
   video = cvCaptureFromFile( vid_file );
-    //video = cvCaptureFromCAM( 0);
     if( ! video ){
         printf("couldn't open video file %s", vid_file);
-//        return 1;
+        return 1;
     }
 
   mode = MODE_BEGIN;
@@ -96,7 +95,7 @@ int main( int argc, char** argv )
                 mode =  MODE_TEST;
                 generating_proposal = true;
             }
-//            cvWaitKey(0);
+            cvWaitKey(0);
             break;
         case MODE_TEST:
             printf("MODE_TEST, numframes = %d\n",numframes);

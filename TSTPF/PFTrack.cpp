@@ -211,5 +211,5 @@ float motion_likelihood(int x, int y, int w,int h){
     match_score += abs(h - estm_PF->height);
     match_score += abs((x - estm_PF->pos_x[0]) - estm_PF->velocity_x);
     match_score += abs((y - estm_PF->pos_y[0]) - estm_PF->velocity_y);
-    return match_score/1000;
+    return match_score/20000;
 }

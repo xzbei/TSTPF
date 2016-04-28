@@ -28,8 +28,8 @@
 #define V_THRESH 0.2
 
 /* distribution parameter */
-#define LAMBDA1 5
-#define LAMBDA2 0.5
+#define LAMBDA1 20
+#define LAMBDA2 0.8
 
 //#ifdef _cplusplus
 //extern "C"{
