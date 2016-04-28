@@ -45,6 +45,22 @@ void initializeEstimate(int est_x, int est_y, int est_width, int est_height, flo
     TST_test_frame = 0;
 }
 
+void initializeEstimate2(int est_x, int est_y, int est_width, int est_height, float est_score){
+    estm_PF = new estimate();
+    estm_PF->pos_x = (float *)malloc (sizeof(float) * MAX_TRAIN_FRAMES);
+    estm_PF->pos_y = (float *)malloc (sizeof(float) * MAX_TRAIN_FRAMES);
+    estm_PF->width_record = (int *)malloc (sizeof(int) * MAX_TRAIN_FRAMES);
+    estm_PF->height_record = (int *)malloc (sizeof(int) * MAX_TRAIN_FRAMES);
+    estm_PF->score = (float *)malloc( sizeof(float) * MAX_TRAIN_FRAMES );
+    estm_PF->pos_x[0] = est_x;
+    estm_PF->pos_y[0] = est_y;
+    estm_PF->width_record[0] = est_width;
+    estm_PF->height_record[0] = est_height;
+    estm_PF->score[0] = est_score;
+    estm_PF->istrack = true;
+    // TST_test_frame = 0;
+}
+
 // ######################################################################
 void initializeTracker(IplImage* pImageFrame, IplImage* pImageGray)
 {
@@ -85,6 +101,7 @@ void initializeTracker(IplImage* pImageFrame, IplImage* pImageGray)
     region[3] = GlobalVar::y1 + pow2[MTD_TRAIN_SCALES]*BTD_NUM_ROWS*BTD_SAMPLE_STEP/2;
 
     initializeEstimate(width/2, height/2, pow2[MTD_TRAIN_SCALES]*BTD_NUM_COLS*BTD_SAMPLE_STEP, pow2[MTD_TRAIN_SCALES]*BTD_NUM_ROWS*BTD_SAMPLE_STEP,0.000001);
+    initializeEstimate2(width/2, height/2, pow2[MTD_TRAIN_SCALES]*BTD_NUM_COLS*BTD_SAMPLE_STEP, pow2[MTD_TRAIN_SCALES]*BTD_NUM_ROWS*BTD_SAMPLE_STEP,0.000001);
 
     init_image_pyramid( pImageGray, ppPyramid_curr, nLevels );
     init_image_pyramid( pImageGray, ppPyramid_prev, nLevels );
@@ -443,9 +460,9 @@ bool Estimate_confidence(){
     }
     estm->accelerate_vx /= (TST_test_frame - 2);
     estm->accelerate_vy /= (TST_test_frame - 2);
-    
+
 //    estm->velocity_x += TST_test_frame / 2 * estm->accelerate_vx;
 //    estm->velocity_y += TST_test_frame / 2 * estm->accelerate_vy;
-    
+
     return true;
 }

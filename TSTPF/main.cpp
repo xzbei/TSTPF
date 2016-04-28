@@ -29,12 +29,12 @@ using namespace GlobalVar;
 #define MODE_TRAIN 1
 #define MODE_TEST 2
 
-#define EXPORT_BASE "/Users/beixinzhu/Desktop/movie_result/bag_slow_speed/frame_"
+#define EXPORT_BASE "/Users/beixinzhu/Desktop/movie_result/new_ac/frame_"
 #define EXPORT_EXTN ".png"
 
-bool export_ = true;
+bool export_ = false;
 CvScalar color;
-char* vid_file = "/Users/beixinzhu/Documents/UCLA/visionlab/testmovie/bag_slow_speed.mp4";
+char* vid_file = "/Users/beixinzhu/Documents/UCLA/visionlab/testmovie/bag_ac_speed.mp4";
 void on_mouse(int event, int x, int y, int flags, void* param );
 int export_frame( IplImage* frame, int i );
 
@@ -112,7 +112,7 @@ int main( int argc, char** argv )
             num_match = 1;
 
             if (PFtimetotest){
-              PF_test(frame, hsv_frame);
+              PF_test(frame, hsv_frame, framegrey);
 //                cvWaitKey(0);
             }
 
@@ -120,7 +120,7 @@ int main( int argc, char** argv )
                 PF_init(frame,hsv_frame);
                 cvShowImage( "Video", frame );
 //                cvWaitKey(0);
-                PF_test(frame, hsv_frame);
+                PF_test(frame, hsv_frame, framegrey);
                 cvShowImage( "Video", frame );
 //                cvWaitKey(0);
                 PFtimetoinit = false;

@@ -68,7 +68,7 @@ particle* PF_init(IplImage* pImageFrame, IplImage* hsv_frame){
     return particles;
 }
 
-void PF_test(IplImage* frame, IplImage* hsv_frame){
+void PF_test(IplImage* frame, IplImage* hsv_frame, IplImage* framegrey){
 
     float sum_score;
     int x[num_match], y[num_match];
@@ -105,11 +105,8 @@ void PF_test(IplImage* frame, IplImage* hsv_frame){
         float s;
         s = particles[j].s;
         if (particles[j].alive == 1){
-            particles[j].w = likelihood( hsv_frame, cvRound(particles[j].y),
-                                        cvRound( particles[j].x ),
-                                        cvRound( particles[j].width * s ),
-                                        cvRound( particles[j].height * s ),
-                                        particles[j].histo );
+            particles[j].w = likelihood1( hsv_frame, cvRound(particles[j].y), cvRound( particles[j].x ), cvRound( particles[j].width * s ), cvRound( particles[j].height * s ), particles[j].histo );
+//             particles[j].w =likelihood2(framegrey, cvRound(particles[j].y), cvRound( particles[j].x ), cvRound( particles[j].width * s ), cvRound( particles[j].height * s ), ppPyramid_curr, trackMTD->mtd, 100000);
             if (particles[j].w == -1){
                 particles[j].alive = 0;
             }
@@ -139,7 +136,7 @@ void PF_test(IplImage* frame, IplImage* hsv_frame){
       }
     }
 
-    particle center_particle = Meanshift_cluster(particles,num,100,frame->width, frame->height);
+    particle center_particle = Meanshift_cluster(particles,num,300,frame->width, frame->height);
     cvCircle(frame, CvPoint(center_particle.x,center_particle.y), 4, CV_RGB(255, 0, 0));
     x3 = round( center_particle.x - 0.5 * center_particle.s * center_particle.width );
     y3 = round( center_particle.y - 0.5 * center_particle.s * center_particle.height );
@@ -154,18 +151,65 @@ void PF_test(IplImage* frame, IplImage* hsv_frame){
                                cvRound(center_particle.height*center_particle.s),center_particle.histo);
 
 //    if (numframes == 2){
+
     if (PFtimetoinit){
         threshold1 = score1*0.05;
         cvRectangle( frame, Point( x3*SCALE, y3*SCALE), Point( x2*SCALE, y2*SCALE ), CV_RGB(255, 0, 0), 3, 8, 0);
+        estm_PF->istrack = true;
+        estm_PF->velocity_x = estm->velocity_x;
+        estm_PF->velocity_y = estm->velocity_y;
     }else {
-        if (score1 >= threshold1)
+        estm_PF->velocity_x = center_particle.x - estm_PF->pos_x[0];
+        estm_PF->velocity_y = center_particle.y - estm_PF->pos_y[0];
+        if (score1 >= threshold1){
+            estm_PF->istrack = true;
             cvRectangle(frame, Point(x3 * SCALE, y3 * SCALE), Point(x2 * SCALE, y2 * SCALE),
                       CV_RGB(255, 0, 0) , 3, 8, 0);
-        else
+                  }
+        else{
+            estm_PF->istrack = false;
             cvRectangle(frame, Point(x3 * SCALE, y3 * SCALE), Point(x2 * SCALE, y2 * SCALE),
                       CV_RGB(0, 255, 0), 3, 8, 0);
+                  }
     }
+
+    estm_PF->pos_x[0] = center_particle.x;
+    estm_PF->pos_y[0] = center_particle.y;
+    estm_PF->width = center_particle.s * center_particle.width;
+    estm_PF->height = center_particle.s * center_particle.height;
 
 //    visualize_particle_heatmap(frame, particles, num_particles, visualize_num_intervals, num);
     visualize_particle_heatmap2(frame, particles, num_particles, visualize_intervals2, num);
+}
+
+float likelihood2( IplImage* img, int r, int c,
+                  int w, int h, IplImage ** pyramid, MTD ** mtd ,float threshold)
+{
+    float match_score1 = MTD_test( mtd[0], (unsigned char *)(pyramid[0]->imageData), pyramid[0]->widthStep, w, h, c, r, 0, threshold );
+    if (PFtimetoinit)
+        return exp( -LAMBDA1 * match_score1 );
+    else{
+        float match_score2 = motion_likelihood(c,r,w,h);
+        return exp(- LAMBDA1 * LAMBDA2 * match_score1 - LAMBDA1 * (1 - LAMBDA2) * match_score2);
+    }
+}
+
+float likelihood1( IplImage* img, int r, int c, int w, int h, histogram* ref_histo)
+{
+    float match_score1 = likelihood(img,r,c,w,h,ref_histo);
+    if (PFtimetoinit)
+        return exp( -LAMBDA1 * match_score1 );
+    else{
+        float match_score2 = motion_likelihood(c,r,w,h);
+        return exp(- LAMBDA1 * LAMBDA2 * match_score1 - LAMBDA1 * (1 - LAMBDA2) * match_score2);
+    }
+}
+
+float motion_likelihood(int x, int y, int w,int h){
+    float match_score = 0;
+    match_score += abs(w - estm_PF->width);
+    match_score += abs(h - estm_PF->height);
+    match_score += abs((x - estm_PF->pos_x[0]) - estm_PF->velocity_x);
+    match_score += abs((y - estm_PF->pos_y[0]) - estm_PF->velocity_y);
+    return match_score/1000;
 }

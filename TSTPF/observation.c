@@ -13,7 +13,6 @@
 #include "particles.h"
 
 
-
 /*
  Converts a BGR image to HSV colorspace
 
@@ -206,7 +205,8 @@ float likelihood( IplImage* img, int r, int c,
         /* compute likelihood as e^{\lambda D^2(h, h^*)} */
         d_sq = histo_dist_sq( histo, ref_histo );
         free( histo );
-        return exp( -LAMBDA * d_sq );
+//        return exp( -LAMBDA1 * d_sq );
+        return d_sq;
     }
     else {
         printf("err!\n");

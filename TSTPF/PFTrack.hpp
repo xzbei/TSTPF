@@ -32,6 +32,10 @@ using namespace GlobalVar;
 
 void PF_train(IplImage* frame, IplImage* hsv_frame);
 particle* PF_init(IplImage* pImageFrame, IplImage* hsv_frame);
-void PF_test(IplImage* frame, IplImage* hsv_frame);
+void PF_test(IplImage* frame, IplImage* hsv_frame, IplImage* framegrey);
+float likelihood2( IplImage* img, int r, int c, int w, int h, IplImage ** pyramid, MTD ** mtd ,float threshold);
+float likelihood1( IplImage* img, int r, int c, int w, int h, histogram* ref_histo);
+float motion_likelihood(int x, int y, int w,int h);
+
 
 #endif /* PFTrack_hpp */

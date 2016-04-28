@@ -10,6 +10,9 @@
 #define observation_h
 
 #include <stdio.h>
+//#include "BTD.hpp"
+#include "defs.h"
+
 
 #define NH 10
 #define NS 10
@@ -25,7 +28,8 @@
 #define V_THRESH 0.2
 
 /* distribution parameter */
-#define LAMBDA 20
+#define LAMBDA1 5
+#define LAMBDA2 0.5
 
 //#ifdef _cplusplus
 //extern "C"{
@@ -44,13 +48,12 @@ extern "C" {
     histogram* calc_histogram( IplImage** imgs, int n );
     void normalize_histogram( histogram* histo );
     float histo_dist_sq( histogram* h1, histogram* h2 );
-    float likelihood( IplImage* img, int r, int c,
-                     int w, int h, histogram* ref_histo );
-    IplImage* likelihood_image( IplImage* img, int w, int h, histogram* ref_histo);
+    float likelihood( IplImage* img, int r, int c, int w, int h, histogram* ref_histo );
+        IplImage* likelihood_image( IplImage* img, int w, int h, histogram* ref_histo);
     int export_histogram( histogram* histo, char* filename );
     // int getregions(IplImage* frame, CvRect** regions);
     histogram** compute_ref_histos( IplImage* frame, CvRect* regions, int n );
-    
+
 #ifdef __cplusplus
 }
 #endif

@@ -18,10 +18,10 @@ using namespace GlobalConst;
 
 namespace GlobalConst
 {
-    const int PARTICLES = 2000;
+    const int PARTICLES = 1000;
     const int MAX_OBJECTS = 1;
-    const float U0 = 0.4;
-    const float U1 = 0.4;
+    const float U0 = 0.2;
+    const float U1 = 0.2;
 
     const int MODE_RESET = -1;
     const int MODE_BEGIN = 0;
@@ -101,4 +101,5 @@ namespace GlobalVar
     int TST_train_frame = 0;
     int TST_test_frame = 0;
     estimate* estm;
+    estimate* estm_PF;
 }

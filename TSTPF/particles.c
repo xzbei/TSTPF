@@ -583,7 +583,7 @@ particle Meanshift_cluster( particle* particles, int n, float kernel_bandwidth,i
 
         meanshift_distance = fabsf(ww - prev_ww);
 
-    }while (iter < 50 && meanshift_distance > 0.01);
+    }while (iter < 500 && meanshift_distance > 0.01);
     center_particle.width = ww;
     center_particle.height = ww;
     return center_particle;
@@ -675,26 +675,30 @@ void visualize_particle_heatmap2(IplImage* frame, particle* particles, int num_p
     float max_hist = 0;
     float r,g,b;
     float heatmap_hist[frame_width][frame_height];
-    memset(heatmap_hist, 0, frame_width * frame_height);
+//    memset(heatmap_hist, 0, frame_width * frame_height);
 
     for (int i=0; i < frame_width ; i++){
         for (int j=0; j < frame_height; j++){
-            heatmap_hist[i][j] = 0;
+            heatmap_hist[i][j] = 0.0000001;
         }
     }
     float dis = 0;
+    float te = 0;
 
     for (int i = 0; i < num_particles; i++){
         if (particles[i].alive){
             int tempx = particles[i].x;
             int tempy = particles[i].y;
-            for (int j = MAX(tempx -particles[i].width * particles[i].s / 2,0); j <= MIN(tempx + particles[i].width * particles[i].s /2 , frame_width-1);j++){
-                for (int k = MAX(tempy -particles[i].height * particles[i].s /2,0); k <= MIN( tempy + particles[i].height * particles[i].s /2,frame_width);k++){
-                    dis = (tempx - j) * (tempx - j) + (tempy - k) * (tempy - k);
-//                    printf("%f\n",gaussian_kernel(dis, particles[i].width * particles[i].s / 2, 1000));
-                    heatmap_hist[j][k] += gaussian_kernel(dis, particles[i].width * particles[i].s , 1000);
-                    if (heatmap_hist[j][k] > max_hist){
-                        max_hist = heatmap_hist[j][k];
+            for (int j = MAX(tempx - particles[i].width * particles[i].s / 2,0); j <= MIN(tempx + particles[i].width * particles[i].s /2 , frame_width - 1);j++){
+                for (int k = MAX(tempy -particles[i].height * particles[i].s /2,0); k <= MIN( tempy + particles[i].height * particles[i].s /2,frame_height);k++){
+                    if (heatmap_hist[j][k] < 10000){
+                        dis = (tempx - j) * (tempx - j) + (tempy - k) * (tempy - k);
+                        te = MIN(MAX(gaussian_kernel(dis, particles[i].width * particles[i].s *10 , 1000),0.0000001),1);
+                        heatmap_hist[j][k] += te;
+                        if (heatmap_hist[j][k] > max_hist){
+//                        printf("%f %f\n",heatmap_hist[j][k],max_hist);
+                            max_hist = heatmap_hist[j][k];
+                        }
                     }
                 }
             }
@@ -721,7 +725,7 @@ void visualize_particle_heatmap2(IplImage* frame, particle* particles, int num_p
 
     for (int i = 0; i < frame_width; i++){
       for (int j = 0; j < frame_height; j++){
-          heatmap_hist[i][j] = MAX((float)heatmap_hist[i][j] / max_hist,0.0001);
+          heatmap_hist[i][j] = MIN(MAX((float)heatmap_hist[i][j] / max_hist,0.0001),1);
       }
     }
 

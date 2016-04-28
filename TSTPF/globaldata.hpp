@@ -115,6 +115,7 @@ namespace GlobalVar
     extern int TST_train_frame;
     extern int TST_test_frame;
     extern estimate* estm;
+    extern estimate* estm_PF;
 }
 
 #endif /*globaldata_hpp*/
