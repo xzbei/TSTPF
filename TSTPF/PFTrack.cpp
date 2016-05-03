@@ -102,10 +102,11 @@ void PF_test(IplImage* frame, IplImage* hsv_frame, IplImage* framegrey){
 //            cvCircle(frame, cvPoint(particles[j].x, particles[j].y), 2, CV_RGB(255, 100, 255),-1);
 //        }//maintain
 
-        float s;
-        s = particles[j].s;
+        float sw,sh;
+        sw = particles[j].sw;
+        sh = particles[j].sh;
         if (particles[j].alive == 1){
-            particles[j].w = likelihood1( hsv_frame, cvRound(particles[j].y), cvRound( particles[j].x ), cvRound( particles[j].width * s ), cvRound( particles[j].height * s ), particles[j].histo );
+            particles[j].w = likelihood1( hsv_frame, cvRound(particles[j].y), cvRound( particles[j].x ), cvRound( particles[j].width * sw ), cvRound( particles[j].height * sh ), particles[j].histo );
 //             particles[j].w =likelihood2(framegrey, cvRound(particles[j].y), cvRound( particles[j].x ), cvRound( particles[j].width * s ), cvRound( particles[j].height * s ), ppPyramid_curr, trackMTD->mtd, 100000);
             if (particles[j].w == -1){
                 particles[j].alive = 0;
@@ -138,23 +139,23 @@ void PF_test(IplImage* frame, IplImage* hsv_frame, IplImage* framegrey){
 
     particle center_particle = Meanshift_cluster(particles,num,frame->width / 2,frame->width, frame->height);
     cvCircle(frame, CvPoint(center_particle.x,center_particle.y), 4, CV_RGB(255, 0, 0));
-    x3 = round( center_particle.x - 0.5 * center_particle.s * center_particle.width );
-    y3 = round( center_particle.y - 0.5 * center_particle.s * center_particle.height );
-    x2 = x3 + round( center_particle.s * center_particle.width );
-    y2 = y3 + round( center_particle.s * center_particle.height );
+    x3 = round( center_particle.x - 0.5 * center_particle.sw * center_particle.width );
+    y3 = round( center_particle.y - 0.5 * center_particle.sh * center_particle.height );
+    x2 = x3 + round( center_particle.sw * center_particle.width );
+    y2 = y3 + round( center_particle.sh * center_particle.height );
     x3 = MAX(0.0,x3);
     y3 = MAX(0.0,y3);
     x2 = MIN(frame->width,x2);
     y2 = MIN(frame->height,y2);
 
-    double score1 = likelihood1(hsv_frame,cvRound(center_particle.y),cvRound(center_particle.x),cvRound(center_particle.width*center_particle.s),
-                               cvRound(center_particle.height*center_particle.s),center_particle.histo);
+    double score1 = likelihood1(hsv_frame,cvRound(center_particle.y),cvRound(center_particle.x),cvRound(center_particle.width*center_particle.sw),
+                               cvRound(center_particle.height*center_particle.sh),center_particle.histo);
 
 //    if (numframes == 2){
 
     if (PFtimetoinit){
         threshold1 = score1*0.05;
-        cvRectangle( frame, Point( x3*SCALE, y3*SCALE), Point( x2*SCALE, y2*SCALE ), CV_RGB(255, 0, 0), 3, 8, 0);
+        cvRectangle( frame, Point( x3*SCALE, y3*SCALE), Point( x2*SCALE, y2*SCALE ), CV_RGB(255, 0, 0), 2, 8, 0);
         estm_PF->istrack = true;
         estm_PF->velocity_x = estm->velocity_x;
         estm_PF->velocity_y = estm->velocity_y;
@@ -164,19 +165,19 @@ void PF_test(IplImage* frame, IplImage* hsv_frame, IplImage* framegrey){
         if (score1 >= threshold1){
             estm_PF->istrack = true;
             cvRectangle(frame, Point(x3 * SCALE, y3 * SCALE), Point(x2 * SCALE, y2 * SCALE),
-                      CV_RGB(255, 0, 0) , 3, 8, 0);
+                      CV_RGB(255, 0, 0) , 2, 8, 0);
                   }
         else{
             estm_PF->istrack = false;
             cvRectangle(frame, Point(x3 * SCALE, y3 * SCALE), Point(x2 * SCALE, y2 * SCALE),
-                      CV_RGB(0, 255, 0), 3, 8, 0);
+                      CV_RGB(0, 255, 0), 2, 8, 0);
                   }
     }
 
     estm_PF->pos_x[0] = center_particle.x;
     estm_PF->pos_y[0] = center_particle.y;
-    estm_PF->width = center_particle.s * center_particle.width;
-    estm_PF->height = center_particle.s * center_particle.height;
+    estm_PF->width = center_particle.sw * center_particle.width;
+    estm_PF->height = center_particle.sh * center_particle.height;
 
 //    visualize_particle_heatmap(frame, particles, num_particles, visualize_num_intervals, num);
 //    visualize_particle_heatmap2(frame, particles, num_particles, visualize_intervals2, num);
@@ -207,14 +208,14 @@ float likelihood1( IplImage* img, int r, int c, int w, int h, histogram* ref_his
 
 float motion_likelihood(int x, int y, int w,int h){
     float match_score = 0;
-    match_score += 1 * abs(w - estm_PF->width);
-    match_score += 1 * abs(h - estm_PF->height);
+    match_score += 1.3 * abs(w - estm_PF->width);
+    match_score += 1.3 * abs(h - estm_PF->height);
 //    match_score += 0.3 * abs((x - estm_PF->pos_x[0]) - estm_PF->velocity_x);
 //    match_score += 0.3 * abs((y - estm_PF->pos_y[0]) - estm_PF->velocity_y);
     match_score += 1.2 * abs(x - estm_PF->pos_x[0] - estm_PF->velocity_x);
     match_score += 1.2 * abs(y - estm_PF->pos_y[0] - estm_PF->velocity_y);
     match_score += 1.5 * abs(x - estm_PF->pos_x[0]);
-    match_score += 2.5 * abs(y - estm_PF->pos_y[0]);
+    match_score += 1.5 * abs(y - estm_PF->pos_y[0]);
 
     return match_score/1000;
 }

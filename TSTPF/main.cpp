@@ -29,10 +29,10 @@ using namespace GlobalVar;
 #define MODE_TRAIN 1
 #define MODE_TEST 2
 
-#define EXPORT_BASE "/Users/beixinzhu/Desktop/movie_result/TV/frame_"
+#define EXPORT_BASE "/Users/beixinzhu/Desktop/movie_result/horses01_6/frame_"
 #define EXPORT_EXTN ".png"
 
-bool export_ = true;
+bool export_ = false;
 CvScalar color;
 //char* vid_file = "/Users/beixinzhu/Documents/UCLA/visionlab/testmovie/bag_ac_speed.mp4";
 char* vid_file = "/Users/beixinzhu/Documents/dataset/movie_1.avi";

@@ -49,14 +49,15 @@ extern "C" {
         /**< current x coordinate */
         float y;
         /**< current y coordinate */
-        float s;
+        float sw;
+        float sh;
         /**< scale */
         float v_x; // x velocity (pos_x[t] - pos_x[t-1])
         float v_y; // y velocity (pos_y[t] - pos_y[t-1])
         float av_x; // accelerate velocity x (pos_x[t] - pos_x[t-1]) - (pos_x[t-1] - pos_x[t-2])
         float av_y; // accelerate velocity y (pos_y[t] - pos_y[t-1]) - (pos_y[t-1] - pos_y[t-2])
-        float sp;
-        /**< previous scale */
+        // float sp;
+        // /**< previous scale */
         int width;
         /**< original width of region described by particle */
         int height;

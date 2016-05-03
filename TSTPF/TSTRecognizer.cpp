@@ -399,11 +399,12 @@ void TST_TEST(IplImage* pImageFrame, IplImage* pImageGray){
         cvRectangle(pImageFrame,
                     cvPoint(track_x[0]-width_half,track_y[0]-height_half),
                     cvPoint(track_x[0]+width_half,track_y[0]+height_half),
-                    CV_RGB(255,255,0), 2, 8, 0);
+                    CV_RGB(255,255,0), 3, 8, 0);
         regions = r;
     }
     else
     {
+        printf("Fail to detect!\n");
         track_x[0] = -1;
         track_y[0] = -1;
         track_l[0] = -1;
