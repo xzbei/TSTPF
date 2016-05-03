@@ -18,10 +18,10 @@ using namespace GlobalConst;
 
 namespace GlobalConst
 {
-    const int PARTICLES = 1000;
+    const int PARTICLES = 5000;
     const int MAX_OBJECTS = 1;
-    const float U0 = 0.2;
-    const float U1 = 0.2;
+    const float U0 = 0.05;
+    const float U1 = 0.05;
 
     const int MODE_RESET = -1;
     const int MODE_BEGIN = 0;
@@ -30,13 +30,13 @@ namespace GlobalConst
     const float SCALE = 1;
     const float THRES = 0.05;
     const float PI = 3.14159265;
-    const int BTD_NUM_ROWS    = 11;
+    const int BTD_NUM_ROWS    = 16;
 //    const int BTD_NUM_ROWS    = 30;
-    const int BTD_NUM_COLS    = 11;
+    const int BTD_NUM_COLS    = 16;
 //    const int BTD_NUM_COLS    = 30;
     const int BTD_NUM_HISTOGRAMS  = BTD_NUM_ROWS * BTD_NUM_COLS;
     const int BTD_NUM_BINS    = 8;
-    const int BTD_SAMPLE_STEP   = 2;
+    const int BTD_SAMPLE_STEP   = 1;
 //    const int BTD_SAMPLE_STEP   = 3;
 
     const int MTD_TRAIN_SCALES  = 3;

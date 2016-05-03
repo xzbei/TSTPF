@@ -29,7 +29,7 @@
 
 /* distribution parameter */
 #define LAMBDA1 20
-#define LAMBDA2 0.8
+#define LAMBDA2 0.5
 
 //#ifdef _cplusplus
 //extern "C"{

@@ -210,7 +210,7 @@ float likelihood( IplImage* img, int r, int c,
     }
     else {
         printf("err!\n");
-        return -1;
+        return 100000;
     }
 }
 

@@ -16,11 +16,11 @@
 
 #define BB0  1
 
-#define TRANS_X_STD /*5.0*/ 20
-#define TRANS_Y_STD /*2.5*/ 20
-#define X_init_STD /*5.0*/ 100
-#define Y_init_STD /*2.5*/ 100
-#define TRANS_S_STD 0.01
+#define TRANS_X_STD /*5.0*/ 100
+#define TRANS_Y_STD /*2.5*/ 100
+#define X_init_STD /*5.0*/ 50
+#define Y_init_STD /*2.5*/ 50
+#define TRANS_S_STD 0.02
 
 #define EPSILON 2
 
@@ -560,7 +560,7 @@ particle Meanshift_cluster( particle* particles, int n, float kernel_bandwidth,i
 
         meanshift_distance = euclidean_distance(prev_center_p,center_particle);
 
-    }while (iter<500 && meanshift_distance > EPSILON);
+    }while (iter<700 && meanshift_distance > EPSILON);
 
     iter = 0;
     ww = particles[0].width * particles[0].s;
@@ -583,9 +583,33 @@ particle Meanshift_cluster( particle* particles, int n, float kernel_bandwidth,i
 
         meanshift_distance = fabsf(ww - prev_ww);
 
-    }while (iter < 500 && meanshift_distance > 0.01);
+    }while (iter < 700 && meanshift_distance > 0.01);
+    
+    iter = 0;
+    hh = particles[0].height * particles[0].s;
+    float hshift;
+    float prev_hh;
+    do{
+        iter ++;
+        prev_hh = hh;
+        meanshift_distance = 0.01 + 1.0;
+        total_weight = 0.0;
+        hshift = 0.0;
+        for(i = 0;i < n; i++){
+            float distance = fabsf(particles[i].height * particles[i].s - hh);
+            float weight = gaussian_kernel(distance,0.5,1);
+            hshift += weight*(particles[i].height  * particles[i].s - hh);
+            total_weight += weight;
+        }
+        hshift /= total_weight;
+        hh += hshift;
+        
+        meanshift_distance = fabsf(hh - prev_hh);
+        
+    }while (iter < 700 && meanshift_distance > 0.01);
+    
     center_particle.width = ww;
-    center_particle.height = ww;
+    center_particle.height = hh;
     return center_particle;
 }
 

@@ -75,6 +75,7 @@ void initializeTracker(IplImage* pImageFrame, IplImage* pImageGray)
 
     // init MTD
     trackMTD = new TrackMTD();
+//    trackMTD->Initialize( BTD_NUM_ROWS, BTD_NUM_COLS, BTD_NUM_BINS, BTD_SAMPLE_STEP, MTD_NUM_SCALE, MTD_NUM_ANCHORS, width, height );
     trackMTD->Initialize( BTD_NUM_ROWS, BTD_NUM_COLS, BTD_NUM_BINS, BTD_SAMPLE_STEP, MTD_NUM_SCALE, MTD_NUM_ANCHORS, width, height );
     track_x = (int *)malloc( sizeof(int) * max_num_match );
     track_y = (int *)malloc( sizeof(int) * max_num_match );
@@ -83,8 +84,9 @@ void initializeTracker(IplImage* pImageFrame, IplImage* pImageGray)
     track_r = (int *)malloc( sizeof(int) * max_num_match );
     track_score = (float *)malloc( sizeof(float) * max_num_match );
     num_match = 0;
-    track_x[0] = width/2;
-    track_y[0] = height/2;
+    track_x[0] = regions[0].x + regions[0].width/2;
+    track_y[0] = regions[0].y + regions[0].height/2;
+//    track_y[0] = height/2;
     track_l[0] = MTD_TRAIN_SCALES;
     track_s[0] = 0;
     track_r[0] = 0;
@@ -93,21 +95,21 @@ void initializeTracker(IplImage* pImageFrame, IplImage* pImageGray)
     pFeatScale = (int *)malloc( sizeof(int) * max_num_feat );
     pFeatStatus = (char *)malloc( sizeof(char) * max_num_feat );
 
-    GlobalVar::x1 = width/2;
-    GlobalVar::y1 = height/2;
+    GlobalVar::x1 = track_x[0];
+    GlobalVar::y1 = track_y[0];
     region[0] = GlobalVar::x1 - pow2[MTD_TRAIN_SCALES]*BTD_NUM_COLS*BTD_SAMPLE_STEP/2;
     region[1] = GlobalVar::y1 - pow2[MTD_TRAIN_SCALES]*BTD_NUM_ROWS*BTD_SAMPLE_STEP/2;
     region[2] = GlobalVar::x1 + pow2[MTD_TRAIN_SCALES]*BTD_NUM_COLS*BTD_SAMPLE_STEP/2;
     region[3] = GlobalVar::y1 + pow2[MTD_TRAIN_SCALES]*BTD_NUM_ROWS*BTD_SAMPLE_STEP/2;
 
-    initializeEstimate(width/2, height/2, pow2[MTD_TRAIN_SCALES]*BTD_NUM_COLS*BTD_SAMPLE_STEP, pow2[MTD_TRAIN_SCALES]*BTD_NUM_ROWS*BTD_SAMPLE_STEP,0.000001);
-    initializeEstimate2(width/2, height/2, pow2[MTD_TRAIN_SCALES]*BTD_NUM_COLS*BTD_SAMPLE_STEP, pow2[MTD_TRAIN_SCALES]*BTD_NUM_ROWS*BTD_SAMPLE_STEP,0.000001);
+    initializeEstimate(track_x[0], track_y[0], pow2[MTD_TRAIN_SCALES]*BTD_NUM_COLS*BTD_SAMPLE_STEP, pow2[MTD_TRAIN_SCALES]*BTD_NUM_ROWS*BTD_SAMPLE_STEP,0.000001);
+    initializeEstimate2(track_x[0], track_y[0], pow2[MTD_TRAIN_SCALES]*BTD_NUM_COLS*BTD_SAMPLE_STEP, pow2[MTD_TRAIN_SCALES]*BTD_NUM_ROWS*BTD_SAMPLE_STEP,0.000001);
 
     init_image_pyramid( pImageGray, ppPyramid_curr, nLevels );
     init_image_pyramid( pImageGray, ppPyramid_prev, nLevels );
     PFtimetoinit = false;
 
-    mode = MODE_BEGIN;
+    // mode = MODE_BEGIN;
 //    return;
 }
 
@@ -132,13 +134,13 @@ void TST_RESET(IplImage* pImageFrame, IplImage* pImageGray){
     MTD_free( &(trackMTD->mtd[0]) );
     trackMTD->mtd[0] = MTD_create( trackMTD->num_templates, trackMTD->num_anchors, trackMTD->mtd_filt );
     num_match = 0;
-    track_x[0] = width/2;
-    track_y[0] = height/2;
+    track_x[0] = regions[0].x + regions[0].width/2;
+    track_y[0] = regions[0].y + regions[0].height/2;
     track_l[0] = MTD_TRAIN_SCALES;
     track_s[0] = 0;
     track_r[0] = 0;
-    GlobalVar::x1 = width/2;
-    GlobalVar::y1 = height/2;
+    GlobalVar::x1 = track_x[0];
+    GlobalVar::y1 = track_y[0];
 }
 
 void TST_BEGIN(IplImage* pImageFrame, IplImage* pImageGray){

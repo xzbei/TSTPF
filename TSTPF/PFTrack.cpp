@@ -136,7 +136,7 @@ void PF_test(IplImage* frame, IplImage* hsv_frame, IplImage* framegrey){
       }
     }
 
-    particle center_particle = Meanshift_cluster(particles,num,300,frame->width, frame->height);
+    particle center_particle = Meanshift_cluster(particles,num,frame->width / 2,frame->width, frame->height);
     cvCircle(frame, CvPoint(center_particle.x,center_particle.y), 4, CV_RGB(255, 0, 0));
     x3 = round( center_particle.x - 0.5 * center_particle.s * center_particle.width );
     y3 = round( center_particle.y - 0.5 * center_particle.s * center_particle.height );
@@ -147,7 +147,7 @@ void PF_test(IplImage* frame, IplImage* hsv_frame, IplImage* framegrey){
     x2 = MIN(frame->width,x2);
     y2 = MIN(frame->height,y2);
 
-    double score1 = likelihood(hsv_frame,cvRound(center_particle.y),cvRound(center_particle.x),cvRound(center_particle.width*center_particle.s),
+    double score1 = likelihood1(hsv_frame,cvRound(center_particle.y),cvRound(center_particle.x),cvRound(center_particle.width*center_particle.s),
                                cvRound(center_particle.height*center_particle.s),center_particle.histo);
 
 //    if (numframes == 2){
@@ -179,7 +179,7 @@ void PF_test(IplImage* frame, IplImage* hsv_frame, IplImage* framegrey){
     estm_PF->height = center_particle.s * center_particle.height;
 
 //    visualize_particle_heatmap(frame, particles, num_particles, visualize_num_intervals, num);
-    visualize_particle_heatmap2(frame, particles, num_particles, visualize_intervals2, num);
+//    visualize_particle_heatmap2(frame, particles, num_particles, visualize_intervals2, num);
 }
 
 float likelihood2( IplImage* img, int r, int c,
@@ -207,9 +207,14 @@ float likelihood1( IplImage* img, int r, int c, int w, int h, histogram* ref_his
 
 float motion_likelihood(int x, int y, int w,int h){
     float match_score = 0;
-    match_score += abs(w - estm_PF->width);
-    match_score += abs(h - estm_PF->height);
-    match_score += abs((x - estm_PF->pos_x[0]) - estm_PF->velocity_x);
-    match_score += abs((y - estm_PF->pos_y[0]) - estm_PF->velocity_y);
-    return match_score/20000;
+    match_score += 1 * abs(w - estm_PF->width);
+    match_score += 1 * abs(h - estm_PF->height);
+//    match_score += 0.3 * abs((x - estm_PF->pos_x[0]) - estm_PF->velocity_x);
+//    match_score += 0.3 * abs((y - estm_PF->pos_y[0]) - estm_PF->velocity_y);
+    match_score += 1.2 * abs(x - estm_PF->pos_x[0] - estm_PF->velocity_x);
+    match_score += 1.2 * abs(y - estm_PF->pos_y[0] - estm_PF->velocity_y);
+    match_score += 1.5 * abs(x - estm_PF->pos_x[0]);
+    match_score += 2.5 * abs(y - estm_PF->pos_y[0]);
+
+    return match_score/1000;
 }
