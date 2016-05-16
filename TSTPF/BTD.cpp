@@ -20,10 +20,8 @@
 #include "opencv/cv.h"
 #include "globaldata.hpp"
 
-using namespace GlobalVar;
-
 using namespace cv;
-//#include <xmmintrin.h>
+using namespace TST;
 
 static int * bit_count = 0;
 void init_bit_count()
@@ -873,10 +871,8 @@ float BTD_quality( BTD_Filter * btd_filt, BTD * btd )
 
 float get_orientation( unsigned char * image, int stride, int x, int y )
 {
-    //
     return 0;
-    //
-    float dx = 0, dy = 0;
+    float dx = 0.0 ,dy = 0.0;
     const int dir_x[16] = {0,1,2,3,3,3,2,1,0,-1,-2,-3,-3,-3,-2,-1};
     const int dir_y[16] = {3,3,2,1,0,-1,-2,-3,-3,-3,-2,-1,0,1,2,3};
 

@@ -27,15 +27,17 @@
 
 using namespace std;
 using namespace cv;
-using namespace GlobalConst;
-using namespace GlobalVar;
+using namespace TST;
+using namespace TSTPF;
+using namespace PF;
 
 void PF_train(IplImage* frame, IplImage* hsv_frame);
 particle* PF_init(IplImage* pImageFrame, IplImage* hsv_frame);
 void PF_test(IplImage* frame, IplImage* hsv_frame, IplImage* framegrey);
 float likelihood2( IplImage* img, int r, int c, int w, int h, IplImage ** pyramid, MTD ** mtd ,float threshold);
-float likelihood1( IplImage* img, int r, int c, int w, int h, histogram* ref_histo);
+float likelihood1( IplImage* img, int r, int c, int w, int h, histogram* ref_histo, bool motion_like);
 float motion_likelihood(int x, int y, int w,int h);
+void display_boundingbox(IplImage* img,particle p, CvScalar color, int a, int b ,int c);
 
 
 #endif /* PFTrack_hpp */

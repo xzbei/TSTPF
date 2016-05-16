@@ -21,23 +21,21 @@
 
 using namespace std;
 using namespace cv;
-using namespace GlobalConst;
-using namespace GlobalVar;
+using namespace TST;
+using namespace TSTPF;
+using namespace PF;
 
-#define MODE_RESET -1
-#define MODE_BEGIN 0
-#define MODE_TRAIN 1
-#define MODE_TEST 2
+#define MODE_TST_TRAIN 1
+#define MODE_TST_PROPOSAL 2
+#define MODE_TSTPF_TEST 3
 
 #define EXPORT_BASE "/Users/beixinzhu/Desktop/movie_result/horses01_6/frame_"
 #define EXPORT_EXTN ".png"
 
 bool export_ = false;
-CvScalar color;
 //char* vid_file = "/Users/beixinzhu/Documents/UCLA/visionlab/testmovie/bag_ac_speed.mp4";
 char* vid_file = "/Users/beixinzhu/Documents/dataset/movie_1.avi";
-void on_mouse(int event, int x, int y, int flags, void* param );
-int get_regions( IplImage*, CvRect** );
+int get_regions( IplImage*);
 void mouse( int, int, int, int, void* );
 int export_frame( IplImage* frame, int i );
 
@@ -53,147 +51,100 @@ typedef struct params {
 
 int main( int argc, char** argv )
 {
-  CvCapture* video;
-  video = cvCaptureFromFile( vid_file );
+    IplImage *frame;
+    CvCapture* video;
+    video = cvCaptureFromFile( vid_file );
     if( ! video ){
         printf("couldn't open video file %s", vid_file);
         return 1;
     }
 
-  mode = MODE_TRAIN;
+    mode = MODE_TST_TRAIN;
+    int TST_train_frame = 0;
+    int TST_proposal_frame = 0;
+    int TSTPF_test_frame = 0;
+    int PFtimetoinit = false;
+    int numframes = 0;
 
-  while( frame = cvQueryFrame( video ) ){
-    IplImage* framegrey = cvCreateImage(cvGetSize(frame), 8, 1);
-    cvCvtColor(frame, framegrey, CV_BGR2GRAY);
-    width = frame->width;
-    height = frame->height;
-    IplImage* hsv_frame;
-    hsv_frame = bgr2hsv(frame);
+    while( frame = cvQueryFrame( video ) ){
+        IplImage* framegrey = cvCreateImage(cvGetSize(frame), 8, 1);
+        cvCvtColor(frame, framegrey, CV_BGR2GRAY);
+        IplImage* hsv_frame;
+        hsv_frame = bgr2hsv(frame);
 
-    if (numframes == -1){
-        num_objects = get_regions(frame,&regions);
-    }
-      printf("mode = %d\n",mode);
+        if (numframes == 0){
+            num_objects = get_regions(frame);
+        }
+          printf("mode = %d\n",mode);
 
-    switch (mode){
-        case MODE_TRAIN:
-            if (numframes == -1){
-                initializeTracker(frame,framegrey);
-                numframes = 0;
-                num_feat = 0;
-                TST_prep(frame,framegrey);
-                TST_RESET(frame,framegrey);
-                generating_proposal = false;
-            }
-//            TST_prep(frame,framegrey);
-            TST_BEGIN(frame,framegrey);
-            numframes ++;
-            printf("MODE_TRAIN, numframes = %d\n",numframes);
-            TST_train_frame ++;
-            printf("TST_train_frame = %d  ",TST_train_frame);
-            printf("TST_test_frame = %d\n",TST_test_frame);
-            TST_prep(frame, framegrey);
-            TST_TRAIN(frame, framegrey);
-            if (TST_train_frame == 1)
-                PF_train(frame,hsv_frame);
-            if (TST_train_frame > 2){
-                mode =  MODE_TEST;
-                generating_proposal = true;
-            }
-            //            cvWaitKey(0);
-            break;
-        case MODE_TEST:
-            printf("MODE_TEST, numframes = %d\n",numframes);
-//            cvWaitKey(0);
-            numframes ++;
-            TST_prep(frame, framegrey);
-            TST_TEST(frame, framegrey);
-            printf("TST_train_frame = %d  ",TST_train_frame);
-            printf("TST_test_frame = %d\n",TST_test_frame);
-            if (generating_proposal){
-                PFtimetoinit = Estimate_confidence();
-            }
-            num_match = 1;
+        switch (mode){
+            case MODE_TST_TRAIN:
+                numframes ++;TST_train_frame ++;
+                printf("MODE_TRAIN, TST_train_frame / numframes = %d / %d\n",TST_train_frame,numframes);
+//                TST_prep(frame,framegrey);
+                // get started
+                if (numframes == 1){
+                    initialize_Detector(frame,framegrey);
+                    TST_prep(frame,framegrey);
+                    TST_RESET(frame,framegrey);
+                }else
+                    TST_prep(frame, framegrey);
 
-            if (PFtimetotest){
-              PF_test(frame, hsv_frame, framegrey);
-//                cvWaitKey(0);
-            }
+                TST_TRAIN(frame, framegrey);
 
-            if (PFtimetoinit){
-                PF_init(frame,hsv_frame);
-                cvShowImage( "Video", frame );
-//                cvWaitKey(0);
+                // train PF
+                if (TST_train_frame == 1)
+                    PF_train(frame,hsv_frame);
+
+                //check MAX_TST_TRAIN_FRAMES
+                if (TST_train_frame >= MAX_TST_TRAIN_FRAMES)
+                    mode =  MODE_TST_PROPOSAL;
+
+                break;
+            case MODE_TST_PROPOSAL:
+                numframes ++;TST_proposal_frame ++;
+                printf("MODE_TRAIN, TST_proposal_frame / numframes = %d / %d\n",TST_proposal_frame,numframes);
+                TST_prep(frame, framegrey);
+                TST_TEST(frame, framegrey);
+
+                //check if can start track
+                if (estm->istrack){
+                    PF_init(frame,hsv_frame);
+                    PF_test(frame, hsv_frame, framegrey);
+                    mode = MODE_TSTPF_TEST;
+                    break;
+                }
+
+                if (TST_proposal_frame > MAX_TST_PROPOSAL_FRAMES){
+                    printf("Cannot generate enough proposals!\n");
+                    return 0;
+                }
+                break;
+            case MODE_TSTPF_TEST:
+                numframes ++;TSTPF_test_frame ++;
+                printf("MODE_TRAIN, TSTPF_test_frame / numframes = %d / %d\n",TSTPF_test_frame,numframes);
+                TST_prep(frame, framegrey);
+                TST_TEST(frame, framegrey);
+                num_match = 1;
+
                 PF_test(frame, hsv_frame, framegrey);
-                cvShowImage( "Video", frame );
-//                cvWaitKey(0);
-                PFtimetoinit = false;
-                PFtimetotest = true;
-                generating_proposal = false;
-             }
-            mode =  MODE_TEST;
+                break;
+        }
+
+        cvNamedWindow( "Video", 1 );
+        cvShowImage( "Video", frame );
+
+        if (export_)
+            export_frame(frame,numframes);
+
+        if(cvWaitKey( 5 ) == 27)
             break;
-    }
-
-    cvNamedWindow( "Video", 1 );
-
-    cvShowImage( "Video", frame );
-
-      if (export_)
-          export_frame(frame,numframes);
-//    cvSetMouseCallback("Video", &on_mouse,0);
-//    cvWaitKey(0);
-
-    if(cvWaitKey( 5 ) == 27)
-        break;
-//    cvDestroyAllWindows();
-//    cvReleaseCapture( &video );
+    //    cvDestroyAllWindows();
+    //    cvReleaseCapture( &video );
 
   }
   return 0;
 }
-
-void on_mouse(int event, int x, int y, int flags, void* param )
-{
-  if (mouseclick == false){
-    // mouseclick = true;
-    switch (event) {
-      case CV_EVENT_LBUTTONDOWN:
-        if (mode == MODE_BEGIN){
-            mouseclick = true;
-          mode = MODE_TRAIN;
-            printf("System start training...\n");
-            break;
-        }
-//        if (mode == MODE_TEST){
-//          mode = MODE_RESET;
-//          numframes = 0;
-//            printf("System start resetting...\n");
-//          initializeTracker(frame,framegrey);
-//          TST_prep(frame,framegrey);
-//          TST_RESET(frame,framegrey);
-//
-//            break;
-//        }
-            break;
-//      case CV_EVENT_LBUTTONUP:
-//        mouseclick = true;
-//        if (mode == MODE_TRAIN){
-//            printf("System start testing...\n");
-//          mode = MODE_TEST;
-//
-//            break;cvWaitKey
-//        }
-//        if (mode == MODE_RESET){
-//            printf("System start beginning...\n");
-//          mode = MODE_BEGIN;
-//            break;
-//        }
-//        break;
-    }
-  }
-}
-
 
 int export_frame( IplImage* frame, int i )
 {
@@ -208,11 +159,10 @@ int export_frame( IplImage* frame, int i )
 }
 
 
-int get_regions( IplImage* frame, CvRect** regions )
+int get_regions( IplImage* frame )
 {
     char* win_name = "First frame";
     params p;
-    CvRect* r;
     int i, x1, y1, x2, y2, w, h;
 
     /* use mouse callback to allow user to define object regions */
@@ -229,30 +179,70 @@ int get_regions( IplImage* frame, CvRect** regions )
     if( p.cur_img )
         cvReleaseImage( &(p.cur_img) );
 
-    /* extract regions defined by user; store as an array of rectangles */
-    if( p.n == 0 )
-    {
-        *regions = NULL;
-        return 0;
-    }
-    r = (CvRect* )malloc( p.n * sizeof( CvRect ) );
-    for( i = 0; i < p.n; i++ )
-    {
-        x1 = MIN( p.loc1[i].x, p.loc2[i].x );
-        x2 = MAX( p.loc1[i].x, p.loc2[i].x );
-        y1 = MIN( p.loc1[i].y, p.loc2[i].y );
-        y2 = MAX( p.loc1[i].y, p.loc2[i].y );
-        w = x2 - x1;
-        h = y2 - y1;
+    x1 = MIN( p.loc1[i].x, p.loc2[i].x );
+    x2 = MAX( p.loc1[i].x, p.loc2[i].x );
+    y1 = MIN( p.loc1[i].y, p.loc2[i].y );
+    y2 = MAX( p.loc1[i].y, p.loc2[i].y );
 
-        /* ensure odd width and height */
-        w = ( w % 2 )? w : w+1;
-        h = ( h % 2 )? h : h+1;
-        r[i] = cvRect( x1, y1, w, h );
-    }
-    *regions = r;
+    w = x2 - x1 + 1;
+    h = y2 - y1 + 1;
+
+    /* ensure odd width and height */
+    w = ( w % 2 )? w : w + 1;
+    h = ( h % 2 )? h : h + 1;
+
+    regions = (CvRect*) malloc(1 * sizeof(CvRect));
+
+    regions[0] = cvRect(x1, y1, w, h);
+
     return p.n;
 }
+//
+//int get_regions( IplImage* frame, CvRect** regions )
+//{
+//    char* win_name = "First frame";
+//    params p;
+//    CvRect* r;
+//    int i, x1, y1, x2, y2, w, h;
+//    
+//    /* use mouse callback to allow user to define object regions */
+//    p.win_name = win_name;
+//    p.orig_img = cvCloneImage( frame );
+//    p.cur_img = NULL;
+//    p.n = 0;
+//    cvNamedWindow( win_name, 1 );
+//    cvShowImage( win_name, frame );
+//    cvSetMouseCallback( win_name, &mouse, &p );
+//    cvWaitKey( 0 );
+//    cvDestroyWindow( win_name );
+//    cvReleaseImage( &(p.orig_img) );
+//    if( p.cur_img )
+//        cvReleaseImage( &(p.cur_img) );
+//    
+//    /* extract regions defined by user; store as an array of rectangles */
+//    if( p.n == 0 )
+//    {
+//        *regions = NULL;
+//        return 0;
+//    }
+//    r = (CvRect* )malloc( p.n * sizeof( CvRect ) );
+//    for( i = 0; i < p.n; i++ )
+//    {
+//        x1 = MIN( p.loc1[i].x, p.loc2[i].x );
+//        x2 = MAX( p.loc1[i].x, p.loc2[i].x );
+//        y1 = MIN( p.loc1[i].y, p.loc2[i].y );
+//        y2 = MAX( p.loc1[i].y, p.loc2[i].y );
+//        w = x2 - x1;
+//        h = y2 - y1;
+//        
+//        /* ensure odd width and height */
+//        w = ( w % 2 )? w : w+1;
+//        h = ( h % 2 )? h : h+1;
+//        r[i] = cvRect( x1, y1, w, h );
+//    }
+//    *regions = r;
+//    return p.n;
+//}
 
 
 

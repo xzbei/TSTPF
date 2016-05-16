@@ -29,6 +29,7 @@
 		DAAEF3F11CB4AE860086DCEC /* TrackMTD.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DAAEF3EF1CB4AE860086DCEC /* TrackMTD.cpp */; };
 		DAAEF3F41CB4AE9F0086DCEC /* TST.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DAAEF3F21CB4AE9F0086DCEC /* TST.cpp */; };
 		DAAEF3F71CB4AEF30086DCEC /* TSTRecognizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DAAEF3F51CB4AEF30086DCEC /* TSTRecognizer.cpp */; };
+		DAD063651CE261DD00A61073 /* PNClassifier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DAD063631CE261DD00A61073 /* PNClassifier.cpp */; };
 		DAD27A021CB746E800F91AF6 /* observation.c in Sources */ = {isa = PBXBuildFile; fileRef = DAD27A001CB746E800F91AF6 /* observation.c */; };
 		DAD27A051CB7474000F91AF6 /* particles.c in Sources */ = {isa = PBXBuildFile; fileRef = DAD27A031CB7474000F91AF6 /* particles.c */; };
 		DAD27A0B1CB74CF100F91AF6 /* PFTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DAD27A091CB74CF100F91AF6 /* PFTrack.cpp */; };
@@ -75,6 +76,8 @@
 		DAAEF3F31CB4AE9F0086DCEC /* TST.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TST.hpp; sourceTree = "<group>"; };
 		DAAEF3F51CB4AEF30086DCEC /* TSTRecognizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TSTRecognizer.cpp; sourceTree = "<group>"; };
 		DAAEF3F61CB4AEF30086DCEC /* TSTRecognizer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TSTRecognizer.hpp; sourceTree = "<group>"; };
+		DAD063631CE261DD00A61073 /* PNClassifier.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PNClassifier.cpp; sourceTree = "<group>"; };
+		DAD063641CE261DD00A61073 /* PNClassifier.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PNClassifier.hpp; sourceTree = "<group>"; };
 		DAD279FF1CB746A500F91AF6 /* defs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = defs.h; sourceTree = "<group>"; };
 		DAD27A001CB746E800F91AF6 /* observation.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = observation.c; sourceTree = "<group>"; };
 		DAD27A011CB746E800F91AF6 /* observation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = observation.h; sourceTree = "<group>"; };
@@ -164,6 +167,8 @@
 				DAD27A011CB746E800F91AF6 /* observation.h */,
 				DAD27A031CB7474000F91AF6 /* particles.c */,
 				DAD27A041CB7474000F91AF6 /* particles.h */,
+				DAD063631CE261DD00A61073 /* PNClassifier.cpp */,
+				DAD063641CE261DD00A61073 /* PNClassifier.hpp */,
 			);
 			path = TSTPF;
 			sourceTree = "<group>";
@@ -228,6 +233,7 @@
 				DAD27A021CB746E800F91AF6 /* observation.c in Sources */,
 				DAAEF3EE1CB4AE310086DCEC /* globaldata.cpp in Sources */,
 				DAD27A051CB7474000F91AF6 /* particles.c in Sources */,
+				DAD063651CE261DD00A61073 /* PNClassifier.cpp in Sources */,
 				DA1BB57C1CB1CC81005E7764 /* main.cpp in Sources */,
 				DAAEF3F11CB4AE860086DCEC /* TrackMTD.cpp in Sources */,
 				DAAEF3F41CB4AE9F0086DCEC /* TST.cpp in Sources */,

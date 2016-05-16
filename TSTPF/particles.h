@@ -75,6 +75,7 @@ extern "C" {
         float * pos_y;
         int * width_record;
         int * height_record;
+        int * valid;
         float confidence;
         float velocity_x;
         float velocity_y;
@@ -84,22 +85,17 @@ extern "C" {
         int height;
         float * score;
         bool istrack;
+        int pointer;
     } estimate;
 
-    particle *init_distribution(CvRect *regions, histogram **histos,
-                                int n, int p, int w, int h, float U0, float * track_score, int num_match, estimate estm);
+    particle* init_distribution( histogram** histos, int num_particles, int img_width, int img_height, float U0, estimate estm);
 
     double gaussrand(double E, double V);
 
-    particle transition(particle p, int w, int h, float U0, float U1, CvRect *regions,
-                        histogram **histos, float * np, int * xx, int * yy, int * ww, int * hh ,int num_match,estimate estm);
+    particle transition( particle p, int img_width, int img_height,float U0,float U1,histogram** histos, estimate estm, estimate estm_PF);
 
-    void normalize_weights(particle *particles, int n);
+    int normalize_weights(particle *particles, int n);
     particle *resample(particle *particles, int n);
-
-    particle *resample1(particle *particles, int n);
-
-    particle *resample2(particle *particles, int n, int num_particles);
 
     particle *resample3(particle *particles, int n, int num_particles);
     int particle_cmp(const void *p1, const void *p2);

@@ -14,19 +14,24 @@
 #include "observation.h"
 #include "particles.h"
 
-using namespace GlobalConst;
+using namespace TSTPF;
 
-namespace GlobalConst
-{
-    const int PARTICLES = 5000;
-    const int MAX_OBJECTS = 1;
-    const float U0 = 0.1;
-    const float U1 = 0.1;
+namespace TSTPF{
+    const float RESART_TRAIN_THRES = 0.2;
+    const float START_TRACKING_THRES = 0.5;
+    const float MAX_TST_PROPOSAL_FRAMES = 20;
+    const float MIN_TST_PROPOSAL_FRAMES = 3;
+    const int MAX_TST_TRAIN_FRAMES = 3;
+    const int MAX_PF_RECORD_FRAMES = 20;
+    const int MIN_PF_RECORD_FRAMES = 4;
 
-    const int MODE_RESET = -1;
-    const int MODE_BEGIN = 0;
-    const int MODE_TRAIN = 1;
-    const int MODE_TEST = 2;
+    int mode;
+    CvRect* regions;
+    estimate* estm;
+    estimate* estm_PF;
+}
+
+namespace TST{
     const float SCALE = 1;
     const float THRES = 0.05;
     const float PI = 3.14159265;
@@ -45,32 +50,9 @@ namespace GlobalConst
 //    const float MTD_SCORE_THRESHOLD = 0.2;
     const float MTD_SCORE_THRESHOLD = 0.3;
     const bool MTD_PRUNE_TRACKING = true;
-    const float RESART_TRAIN_THRES = 0.2;
-    const float START_TRACKING_THRES = 0.5;
-    const float MAX_TRAIN_FRAMES = 20;
-    const float MIN_TRAIN_FRAMES = 5;
-}
 
-namespace GlobalVar
-{
-    bool mouseclick = false;
-    int region[4];
-    int num_particles = PARTICLES;
-    int show_all = 1;
-    IplImage* frame;
-    // IplImage* framegrey;
-    histogram** ref_histos;
-    particle* particles;
-    CvRect* regions;
-    int numframes = -1;
-    int num_objects = 1;
     int nLevels = 5;
     int max_num_feat = 500;
-    double threshold1;
-    int mode;
-    int width; //frame width
-    int height; //frame height
-
     IplImage ** ppPyramid_curr;
     IplImage ** ppPyramid_prev;
     CvPoint2D32f * pFeat_curr;
@@ -89,17 +71,26 @@ namespace GlobalVar
     int * track_r;
     float * track_score;
     int num_match;
-    int x1;
-    int y1;
-    float width_half;
-    float height_half;
-    bool PFtimetoinit = false;
-    bool PFtimetotest = false;
-    bool generating_proposal = false;
+
+}
+
+namespace PF{
+    const int PARTICLES = 5000;
+    const int MAX_OBJECTS = 1;
+    const float U0 = 0.2;
+    const float U1 = 0.2;
+
+    int num_particles = PARTICLES;
+    int show_all = 1;
+    histogram** ref_histos;
+    particle* particles;
+    int num_objects = 1;
+    double threshold1;
+
     int visualize_num_intervals = 20;
     int visualize_intervals2 = 50;
-    int TST_train_frame = 0;
-    int TST_test_frame = 0;
-    estimate* estm;
-    estimate* estm_PF;
+
 }
+
+
+

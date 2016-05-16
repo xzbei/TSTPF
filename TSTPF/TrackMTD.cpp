@@ -105,7 +105,7 @@ void TrackMTD::Learn( IplImage ** pyramid, int num_level, int num_feat, CvPoint2
     {
         float feat_x = feat[i].x * pow2[feat_scale[i]];
         float feat_y = feat[i].y * pow2[feat_scale[i]];
-        if ( abs(x - feat_x) < thresh_width && abs(y - feat_y) < thresh_height )
+        if ( fabsf(x - feat_x) < thresh_width && fabsf(y - feat_y) < thresh_height )
         {
             MTD_update_feat_dist( mtd[0], x, y, feat_x, feat_y, pow2[level] );
         }
@@ -136,7 +136,7 @@ void TrackMTD::Learn( IplImage ** pyramid, int num_level, int num_feat, CvPoint 
     {
         float feat_x = feat[i].x * pow2[feat_scale[i]];
         float feat_y = feat[i].y * pow2[feat_scale[i]];
-        if ( abs(x - feat_x) < thresh_width && abs(y - feat_y) < thresh_height )
+        if ( fabsf(x - feat_x) < thresh_width && fabsf(y - feat_y) < thresh_height )
         {
             MTD_update_feat_dist( mtd[0], x, y, feat_x, feat_y, pow2[level] );
         }

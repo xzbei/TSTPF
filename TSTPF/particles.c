@@ -14,132 +14,73 @@
 #include <math.h>
 #include <opencv/highgui.h>
 
-#define BB0  1
-
 #define TRANS_X_STD /*5.0*/ 200
 #define TRANS_Y_STD /*2.5*/ 200
 #define X_init_STD /*5.0*/ 50
 #define Y_init_STD /*2.5*/ 50
-#define TRANS_S_STD 0.1
-
+#define TRANS_S_STD 0.05
 #define EPSILON 2
-
-/* autoregressive dynamics parameters for transition model */
-#define A1 /* 2.0*/ 2
-#define A2 /*-1.0*/ -1
 #define B0  1.0000
 
-particle* init_distribution( CvRect* regions, histogram** histos, int n, int p, int w, int h, float U0, float * track_score, int num_match, estimate estm)
+particle* init_distribution( histogram** histos, int num_particles, int img_width, int img_height, float U0, estimate estm)
 {
     particle* particles;
-    float x[num_match], y[num_match];
-    int i, j, k = 0;
-    float temp1,temp2;
-    int width[num_match];
-    int height[num_match];
-    float np[num_match];
-    int selectregion;
+    float temp;
+    int i, k = 0;
 
-    particles = malloc( p * sizeof( particle ) );
-    // np = p / n;
-    float sum_score;
-    for (i = 0; i < num_match; i++){
-      sum_score += track_score[i];
-    }
+    particles = malloc( num_particles * sizeof( particle ) );
 
-    np[0] = track_score[0] / sum_score;
-    for (i = 1; i < num_match; i++){
-      np[i] = np[i-1] + track_score[i] / sum_score;
-    }
+    for (i = 0;i < num_particles; i++){
 
-    for (i = 0; i < num_match; i++){
-      width[i] = regions[i].width;
-      height[i] = regions[i].height;
-      x[i] = regions[i].x + width[i] / 2;
-      y[i] = regions[i].y + height[i] / 2;
-    }
+      temp = rand() / (float)(RAND_MAX);
 
-    for (i = 0;i < p; i++){
-      temp1 = rand() / (float)(RAND_MAX);
-      selectregion = -1;
-      for (j = 0; j < num_match; j++){
-        if (temp1 <= np[j]) {
-          selectregion = j;
-          break;
-        }
-      }
-
-      if (selectregion == -1) selectregion = 0;
-
-      temp2 = rand() / (float)(RAND_MAX);
-
-      if (temp2<=U0){
-        //   particles[k].x0 = x[selectregion] + B0 * gaussrand(0,X_init_STD);
-        //   particles[k].y0 = y[selectregion] + B0 * gaussrand(0,Y_init_STD);
-          //
-        //   particles[k].x0 = particles[k].xp = particles[k].x = MAX( 0.0, MIN( (float)w - 1.0, particles[k].x0 ) );
-        //   particles[k].y0 = particles[k].yp = particles[k].y = MAX( 0.0, MIN( (float)h - 1.0, particles[k].y0 ) );
-            particles[k].x = MAX( 0.0, MIN( (float)w - 1.0, x[selectregion] ) );
-            particles[k].y = MAX( 0.0, MIN( (float)h - 1.0, y[selectregion] ) );
+      if (temp<=U0){
+            float xx = estm.pos_x[estm.pointer] + B0 * gaussrand(0,X_init_STD);
+            float yy = estm.pos_y[estm.pointer] + B0 * gaussrand(0,Y_init_STD);
+            particles[k].x =  MAX( 0.0, MIN( (float)img_width - 1.0, xx ) );
+            particles[k].y =  MAX( 0.0, MIN( (float)img_height - 1.0, yy ) );
             particles[k].v_x = estm.velocity_x;
             particles[k].v_y = estm.velocity_y;
             particles[k].av_x = estm.accelerate_vx;
             particles[k].av_y = estm.accelerate_vy;
-            // particles[k].xp = particles[k].x - estm.velocity_x;
-            // particles[k].yp = particles[k].y - estm.velocity_y;
-            // particles[k].xp = MAX( 0.0, MIN( (float)w - 1.0, particles[k].xp ) );
-            // particles[k].yp = MAX( 0.0, MIN( (float)h - 1.0, particles[k].yp ) );
-        //   particles[k].sp = particles[k].s = 1.0;
-        particles[k].sw = particles[k].sh = 1.0;
-          particles[k].width = width[selectregion];
-          particles[k].height = height[selectregion];
-        //   particles[k].width = estm->width;
-        //   particles[k].height = estm->height;
-          particles[k].histo = histos[0];
-          particles[k].alive = 1;
-          particles[k++].w = 0;
+            particles[k].sw = particles[k].sh = 1.0;
+            particles[k].width = estm.width;
+            particles[k].height = estm.height;
+            particles[k].histo = histos[0];
+            particles[k].alive = 1;
+            particles[k++].w = 0;
       }
       else{
-        //   particles[k].xp = particles[k].x = 0.0;
-        //   particles[k].yp = particles[k].y = 0.0;
           particles[k].x = particles[k].y = 0.0;
           particles[k].v_x = particles[k].v_y = 0.0;
           particles[k].av_x = particles[k].av_y = 0.0;
-        //   particles[k].sp = particles[k].s = 0.0;
-          particles[k].sw = particles[k].sh = 1.0;
-          particles[k].width = width[selectregion];
-          particles[k].height = height[selectregion];
+          particles[k].sw = particles[k].sh = 0.0;
+          particles[k].width = 0;
+          particles[k].height = 0;
           particles[k].histo = histos[0];
           particles[k].alive = 0;
           particles[k++].w = 0;
-      }
+      }//die
 
     }
 
     /* make sure to create exactly p particles */
-//    i = 0;
-    while( k < p )
+    while( k < num_particles )
     {
-        selectregion = rand() % num_match;
-        particles[k].x = MAX( 0.0, MIN( (float)w - 1.0, x[selectregion] ) );
-        particles[k].y = MAX( 0.0, MIN( (float)h - 1.0, y[selectregion] ) );
+        float xx = estm.pos_x[estm.pointer] + B0 * gaussrand(0,X_init_STD);
+        float yy = estm.pos_y[estm.pointer] + B0 * gaussrand(0,Y_init_STD);
+        particles[k].x =  MAX( 0.0, MIN( (float)img_width - 1.0, xx ) );
+        particles[k].y =  MAX( 0.0, MIN( (float)img_height - 1.0, yy ) );
         particles[k].v_x = estm.velocity_x;
         particles[k].v_y = estm.velocity_y;
         particles[k].av_x = estm.accelerate_vx;
         particles[k].av_y = estm.accelerate_vy;
-        // particles[k].xp = particles[k].x - estm.velocity_x;
-        // particles[k].yp = particles[k].y - estm.velocity_y;
-        // particles[k].xp = MAX( 0.0, MIN( (float)w - 1.0, particles[k].xp ) );
-        // particles[k].yp = MAX( 0.0, MIN( (float)h - 1.0, particles[k].yp ) );
-        // particles[k].sp = particles[k].s = 1.0;
         particles[k].sw = particles[k].sh = 1.0;
-        particles[k].width = width[selectregion];
-        particles[k].height = height[selectregion];
-        //   particles[k].width = estm->width;
-        //   particles[k].height = estm->height;
+        particles[k].width = estm.width;
+        particles[k].height = estm.height;
         particles[k].histo = histos[0];
-        particles[k++].w = 0;
         particles[k].alive = 1;
+        particles[k++].w = 0;
     }
 
     return particles;
@@ -180,41 +121,37 @@ double gaussrand(double E, double V)
  @return Returns a new particle sampled based on <EM>p</EM>'s transition
  model
  */
-particle transition( particle p, int w, int h,float U0,float U1, CvRect* regions,histogram** histos ,float * np, int * xx, int * yy, int * ww, int * hh , int num_match, estimate estm)
+particle transition( particle p, int img_width, int img_height,float U0,float U1,histogram** histos, estimate estm, estimate estm_PF)
 {
     //    srand(time(0));
     float x, y, s;
-    float temp1;
     particle pn;
-    int selectregion = -1;
 
     if (p.alive ==0 && (rand()/(float)(RAND_MAX))<=U0){
-        pn.alive = 1;
-
-        temp1= rand() / (float) (RAND_MAX);
-        for (int i = 0; i < num_match; i++){
-          if(temp1 <= np[i]){
-            selectregion = i;
-            break;
-          }
+        if (estm.valid[estm.pointer] == 1){
+            pn.x = MAX( 0.0, MIN( (float)img_width - 1.0, estm.pos_x[estm.pointer]+ B0 * gaussrand(0,X_init_STD) ) );
+            pn.y = MAX( 0.0, MIN( (float)img_height - 1.0, estm.pos_y[estm.pointer] + B0 * gaussrand(0,Y_init_STD) ) );
+            pn.width = estm.width_record[estm.pointer];
+            pn.height = estm.height_record[estm.pointer];
+        }else{
+            pn.x = rand() % img_width;
+            pn.y = rand() % img_height;
+            pn.width = estm_PF.width;
+            pn.height = estm_PF.height;
         }
 
-        if (selectregion == -1) selectregion = 0;
-
-        pn.x = MAX( 0.0, MIN( (float)w - 1.0, xx[selectregion]+ B0 * gaussrand(0,X_init_STD) ) );
-        pn.y = MAX( 0.0, MIN( (float)h - 1.0, yy[selectregion]+ B0 * gaussrand(0,Y_init_STD) ) );
-        pn.v_x = estm.velocity_x;
-        pn.v_y = estm.velocity_y;
-        pn.av_x = estm.accelerate_vx;
-        pn.av_y = estm.accelerate_vy;
-        // pn.xp = pn.x - estm.velocity_x;
-        // pn.yp = pn.y - estm.velocity_y;
-        // pn.xp = MAX( 0.0, MIN( (float)w - 1.0, pn.xp ) );
-        // pn.yp = MAX( 0.0, MIN( (float)h - 1.0, pn.yp ) );
-        // pn.sp = pn.s = 1.0;
+        if (estm.istrack){
+            pn.v_x = estm.velocity_x;
+            pn.v_y = estm.velocity_y;
+            pn.av_x = estm.accelerate_vx;
+            pn.av_y = estm.accelerate_vy;
+        }else{
+            pn.v_x = estm_PF.velocity_x;
+            pn.v_y = estm_PF.velocity_y;
+            pn.av_x = estm_PF.accelerate_vx;
+            pn.av_y = estm_PF.accelerate_vy;
+        }
         pn.sw = pn.sh = 1.0;
-        pn.width = ww[selectregion];
-        pn.height = hh[selectregion];
         pn.histo = histos[0];
         pn.alive = 1;
         pn.w = 0;
@@ -222,22 +159,18 @@ particle transition( particle p, int w, int h,float U0,float U1, CvRect* regions
     }//born
     else if (p.alive == 1 && (rand()/(float)(RAND_MAX))<=1-U1){
         x = p.x + p.v_x + p.av_x + B0 * gaussrand(0, TRANS_X_STD);
-//        pn.x = MAX( 0.0, MIN( (float)w - 1.0, x ) );
-        if (x > (float)w - 1.0)
-            x = x - (float)w - 1.0;
+        if (x > (float)img_width - 1.0)
+            x = x - (float)img_width - 1.0;
         if (x < 0)
-            x = (float)w - 1.0 -(0 - x);
+            x = (float)img_width - 1.0 -(0 - x);
         pn.x = x;
         y = p.y + p.v_y + p.av_y + B0 * gaussrand(0, TRANS_Y_STD);
-//        pn.y = MAX( 0.0, MIN( (float)h - 1.0, y ) );
-        if (y > (float)h- 1.0)
-            y = y - (float)h - 1.0;
+        if (y > (float)img_height- 1.0)
+            y = y - (float)img_height - 1.0;
         if (y < 0)
-            y = (float)h - 1.0 - (0 - y);
+            y = (float)img_height - 1.0 - (0 - y);
         pn.y = y;
-        // s = p.s + 1 * (p.s - p.sp) + B0 * gaussrand(0, TRANS_S_STD);
         s = p.sw + B0 * gaussrand(0, TRANS_S_STD);
-        // pn.s = MAX( 0.1, s );
         pn.sw = MAX( 0.1, s );
         s = p.sh + B0 * gaussrand(0, TRANS_S_STD);
         pn.sh = MAX( 0.1, s );
@@ -245,7 +178,6 @@ particle transition( particle p, int w, int h,float U0,float U1, CvRect* regions
         pn.v_y = pn.y - p.y;
         pn.av_x = pn.v_x - p.v_x;
         pn.av_y = pn.v_y - p.v_y;
-        // pn.sp = p.s;
         pn.width = p.width;
         pn.height = p.height;
         pn.histo = p.histo;
@@ -281,21 +213,25 @@ particle transition( particle p, int w, int h,float U0,float U1, CvRect* regions
  @param particles an array of particles whose weights are to be normalized
  @param n the number of particles in \a particles
  */
-void normalize_weights( particle* particles, int n )
+int normalize_weights( particle* particles, int n )
 {
     float sum = 0;
     int i;
+    int num_alive = 0;
 
     for( i = 0; i < n; i++ )
-        if (particles[i].alive == 1)
+        if (particles[i].alive == 1){
             sum += particles[i].w;
+            num_alive ++;
+        }
+
     for( i = 0; i < n; i++ ){
         if (particles[i].alive == 1)
             particles[i].w /= sum;
         else
             particles[i].w =0;
     }
-
+    return num_alive;
 }
 
 
@@ -336,92 +272,13 @@ exit:
     return new_particles;
 }
 
-particle* resample1( particle* particles, int n )
-{
-    //    srand(time(0));
-    particle* new_particles;
-    int i, j, k = 0;
-    float u;
-    new_particles = malloc( n * sizeof( particle ) );
-
-    float weightsum[n+1];
-    weightsum[0] = 0;
-    for( i = 1; i <=n ; i++ ){
-        weightsum[i] = weightsum[i-1] + particles[i].w;
-    }
-    u = 0;k=0;
-    while (k<n) {
-        u = rand() / (double)(RAND_MAX);
-        while (u==0) {
-            u = rand() / (double)(RAND_MAX);
-        }
-        //        printf("%d = %f\n",k,u);
-        for(j = 1;j<=n;j++){
-            if (u>weightsum[j-1] && u<=weightsum[j]) {
-                new_particles[k++] = particles[j-1];
-                new_particles[k].w = 0;
-                //                printf("j = %d\n", j);
-                break;
-            }
-        }
-
-    }
-    return new_particles;
-}
-
-particle* resample2( particle* particles, int n ,int num_particles)
-{
-    //    srand(time(0));
-    particle* new_particles;
-    int i, j = 0;
-    new_particles = malloc( n * sizeof( particle ) );
-    new_particles = particles;
-
-    float weightsum[n];
-    weightsum[0] = particles[0].w;
-    for( i = 1; i <n ; i++ )
-        weightsum[i] = weightsum[i-1] + particles[i].w;
-
-    float randp[n+1];
-    float randtotal = 0;
-    for (i=0;i<=n;i++){
-        randp[i] = rand() / (float)(RAND_MAX);
-        randtotal += randp[i];
-    }
-
-    for (i=0;i<=n;i++)
-        randp[i] = randp[i] / randtotal;
-
-    float randsum[n+1];
-    randsum[0] = randp[0];
-    for( i = 1; i <=n ; i++ ){
-        randsum[i] = randsum[i-1] + randp[i];
-    }
-
-    i=0; // index of randsum
-    j=0; // index of weightsum
-
-    while (i<n && j<n) {
-        if (weightsum[j]>=randsum[i]){
-            new_particles[i] = particles[j];
-            new_particles[i].alive = 1;
-            new_particles[i].w = 0;
-            i++;
-        }else{
-            j++;
-        }
-    }
-
-    return new_particles;
-}
-
 particle* resample3( particle* particles, int n ,int num_particles)
 {
     //    srand(time(0));
     particle* new_particles;
     int i, j = 0;
     float temp;
-    new_particles = malloc( n * sizeof( particle ) );
+    new_particles = malloc( num_particles * sizeof( particle ) );
     new_particles = particles;
 
     float weightsum[n+1];
@@ -439,9 +296,9 @@ particle* resample3( particle* particles, int n ,int num_particles)
         }
         i++;
     }
-    //    for (i=n;i<num_particles;i++){
-    //        new_particles[i].w = 0;
-    //    }
+        for (i = n;i < num_particles;i++){
+            new_particles[i].w = 0;
+        }
     return new_particles;
 }
 
@@ -482,9 +339,9 @@ int particle_cmp2( const void* p1, const void* p2 )
 }
 
 int calculate_alive(particle* particles,int n){
-    int num=0;
+    int num = 0;
     int i;
-    for (i=0;i<n;i++)
+    for (i = 0; i < n; i ++)
         if (particles[i].alive ==1)
             num++;
     return num;
